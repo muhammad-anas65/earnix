@@ -50,30 +50,36 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-
-    try {
-      const decoded = JSON.parse(atob(token));
+    const checkAuth = () => {
+      const token = localStorage.getItem('admin_token');
       
-      if (decoded.exp < Date.now()) {
-        localStorage.removeItem('admin_token');
+      if (!token) {
         router.push('/admin/login');
+        setLoading(false);
         return;
       }
-      
-      setAdminData({ name: decoded.name, email: decoded.email });
-      setIsAuthenticated(true);
-    } catch {
-      localStorage.removeItem('admin_token');
-      router.push('/admin/login');
-    } finally {
-      setLoading(false);
-    }
+
+      try {
+        const decoded = JSON.parse(atob(token));
+        
+        if (decoded.exp < Date.now()) {
+          localStorage.removeItem('admin_token');
+          router.push('/admin/login');
+          setLoading(false);
+          return;
+        }
+        
+        setAdminData({ name: decoded.name, email: decoded.email });
+        setIsAuthenticated(true);
+        setLoading(false);
+      } catch {
+        localStorage.removeItem('admin_token');
+        router.push('/admin/login');
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, [router]);
 
   const handleLogout = () => {
