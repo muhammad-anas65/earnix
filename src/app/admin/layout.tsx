@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Users, 
@@ -20,7 +20,8 @@ import {
   Bell,
   Search,
   ChevronDown,
-  Eye
+  Eye,
+  Shield
 } from 'lucide-react';
 import { cn, formatCurrency, formatDateTime, getInitials } from '@/lib/utils';
 
@@ -41,8 +42,59 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminData, setAdminData] = useState<{name?: string; email?: string} | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    
+    if (!token) {
+      router.push('/admin/login');
+      return;
+    }
+
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (decoded.exp < Date.now()) {
+        localStorage.removeItem('admin_token');
+        router.push('/admin/login');
+        return;
+      }
+      
+      setAdminData({ name: decoded.name, email: decoded.email });
+      setIsAuthenticated(true);
+    } catch {
+      localStorage.removeItem('admin_token');
+      router.push('/admin/login');
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
+    router.push('/admin/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -87,7 +139,10 @@ export default function AdminLayout({
         </nav>
         
         <div className="absolute bottom-6 left-4 right-4">
-          <button className="flex items-center w-full px-5 py-4 text-gray-400 hover:bg-gray-800 hover:text-white rounded-xl transition-all">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center w-full px-5 py-4 text-gray-400 hover:bg-gray-800 hover:text-white rounded-xl transition-all"
+          >
             <LogOut className="w-6 h-6" />
             {sidebarOpen && <span className="ml-4 font-medium">Logout</span>}
           </button>
@@ -178,12 +233,12 @@ export default function AdminLayout({
               </button>
               
               <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold text-lg">
-                  SA
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-lg">
+                  {getInitials(adminData?.name || 'Admin')}
                 </div>
                 <div className="hidden sm:block">
-                  <p className="font-semibold text-gray-900">Super Admin</p>
-                  <p className="text-xs text-gray-500">admin@earnix.pk</p>
+                  <p className="font-semibold text-gray-900">{adminData?.name || 'Admin'}</p>
+                  <p className="text-xs text-gray-500">{adminData?.email || 'admin@earnix.com'}</p>
                 </div>
                 <ChevronDown className="w-5 h-5 text-gray-400" />
               </div>
