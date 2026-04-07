@@ -50,35 +50,34 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('admin_token');
-      
-      if (!token) {
-        window.location.href = '/admin/login';
-        return;
-      }
+    const token = localStorage.getItem('admin_token');
+    
+    if (!token) {
+      window.location.href = '/admin/login';
+      return;
+    }
 
-      try {
-        const decoded = JSON.parse(atob(token));
-        
-        if (decoded.exp < Date.now()) {
-          localStorage.removeItem('admin_token');
-          window.location.href = '/admin/login';
-          return;
-        }
-        
-        setAdminData({ name: decoded.name || 'Admin', email: decoded.email || '' });
-        setIsAuthenticated(true);
-      } catch (e) {
+    try {
+      const decoded = JSON.parse(atob(token));
+      
+      if (!decoded.exp || decoded.exp < Date.now()) {
         localStorage.removeItem('admin_token');
         window.location.href = '/admin/login';
         return;
       }
       
-      setLoading(false);
-    };
-
-    checkAuth();
+      setAdminData({ 
+        name: decoded.name || 'Admin', 
+        email: decoded.email || '' 
+      });
+      setIsAuthenticated(true);
+    } catch (e) {
+      localStorage.removeItem('admin_token');
+      window.location.href = '/admin/login';
+      return;
+    }
+    
+    setLoading(false);
   }, []);
 
   const handleLogout = () => {
