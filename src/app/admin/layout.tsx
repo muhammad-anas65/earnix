@@ -58,7 +58,7 @@ export default function AdminLayout({
     }
 
     try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const decoded = JSON.parse(atob(token));
       
       if (decoded.exp < Date.now()) {
         localStorage.removeItem('admin_token');

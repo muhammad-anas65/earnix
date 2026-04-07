@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       JSON.stringify({
         adminId: admin.id,
         email: admin.email,
+        name: admin.name,
         exp: Date.now() + 24 * 60 * 60 * 1000,
       })
     ).toString('base64');
