@@ -1,64 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from './lib/auth';
+import { updateSession } from './utils/supabase/middleware';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Paths that require authentication
   const protectedPaths = ['/dashboard', '/api/users', '/api/tasks', '/api/wallet', '/api/withdrawals', '/api/payments'];
+  const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
+
+  const { supabaseResponse, user } = await updateSession(request);
   
-  // Paths that should NOT be accessed if logged in
-  const authPaths = ['/login', '/signup'];
-
   const sessionToken = request.cookies.get('session')?.value;
-  const session = sessionToken ? verifySession(sessionToken) : null;
+  const legacySession = sessionToken ? verifySession(sessionToken) : null;
 
-  // API protection
+  const isAdmin = legacySession?.role === 'admin';
+  const isAuthUser = !!user;
+  const currentUserId = user?.id || legacySession?.userId;
+
+  const redirectTo = (url: string) => {
+    const res = NextResponse.redirect(new URL(url, request.url));
+    supabaseResponse.headers.forEach((value, key) => {
+      res.headers.append(key, value);
+    });
+    return res;
+  };
+
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/') && !pathname.startsWith('/api/admin/login')) {
-    if (!session) {
+    if (!isAuthUser && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
 
-  // Dashboard protection for users
   if (pathname.startsWith('/dashboard') || pathname === '/payment' || pathname === '/pending-approval') {
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    if (session.role === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url));
+    if (!isAuthUser) {
+      return redirectTo('/login');
     }
   }
 
-  // Admin protection
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login' || pathname === '/admin/register') {
-      if (session && session.role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
+      if (isAdmin) {
+        return redirectTo('/admin');
       }
-      return NextResponse.next();
+      return supabaseResponse;
     }
 
-    if (!session || session.role !== 'admin') {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+    if (!isAdmin) {
+      return redirectTo('/admin/login');
     }
   }
 
-  // Redirect logged in users away from auth pages
   if (authPaths.some(path => pathname.startsWith(path))) {
-    if (session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (isAuthUser) {
+      return redirectTo('/dashboard');
     }
   }
 
-  const response = NextResponse.next();
-  
-  // Inject userId into headers for API routes to use internally
-  if (session) {
-    response.headers.set('x-user-id', session.userId);
+  if (currentUserId) {
+    supabaseResponse.headers.set('x-user-id', currentUserId);
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {

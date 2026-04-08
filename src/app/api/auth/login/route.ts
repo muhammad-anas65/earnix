@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '@/lib/supabase';
-import { createSession } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +15,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const cookieStore = await cookies();
+    const supabaseClient = createClient(cookieStore);
+
+    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.user) {
+      return NextResponse.json(
+        { success: false, error: authError?.message || 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .select(`
@@ -22,21 +37,13 @@ export async function POST(request: NextRequest) {
         plan:plans(*),
         wallet:wallets(*)
       `)
-      .eq('email', email)
+      .eq('id', authData.user.id)
       .single();
 
     if (error || !user) {
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid email or password' },
-        { status: 401 }
+        { success: false, error: 'User profile not found. Please contact support.' },
+        { status: 404 }
       );
     }
 
@@ -47,13 +54,7 @@ export async function POST(request: NextRequest) {
 
     delete user.password_hash;
 
-    const token = await createSession({
-      userId: user.id,
-      email: user.email,
-      role: 'user', // Basic role for now
-    });
-
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       data: {
         user: {
@@ -69,16 +70,6 @@ export async function POST(request: NextRequest) {
       },
       message: 'Login successful',
     });
-
-    response.cookies.set('session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    return response;
 
   } catch (error) {
     console.error('Login error:', error);

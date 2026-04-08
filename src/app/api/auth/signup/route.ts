@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateReferralCode } from '@/lib/utils';
-import { createSession } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +29,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const cookieStore = await cookies();
+    const supabaseClient = createClient(cookieStore);
+
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          phone,
+        }
+      }
+    });
+
+    if (authError || !authData.user) {
+      return NextResponse.json(
+        { success: false, error: authError?.message || 'Failed to sign up via Supabase Auth' },
+        { status: 400 }
+      );
+    }
 
     const { data: plan } = await supabaseAdmin
       .from('plans')
@@ -63,10 +82,11 @@ export async function POST(request: NextRequest) {
     const { data: newUser, error: userError } = await supabaseAdmin
       .from('users')
       .insert({
+        id: authData.user.id,
         name,
         email,
         phone,
-        password_hash: passwordHash,
+        password_hash: '', // Handled by Supabase Auth now
         plan_id: planId,
         referral_code: userReferralCode,
         referred_by: referredById,
@@ -76,8 +96,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !newUser) {
+      // Rollback Auth user if custom insert fails
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json(
-        { success: false, error: 'Failed to create user' },
+        { success: false, error: 'Failed to create user profile' },
         { status: 500 }
       );
     }
@@ -102,13 +124,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const token = await createSession({
-      userId: newUser.id,
-      email: newUser.email,
-      role: 'user',
-    });
-
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       data: {
         uid: newUser.id,
@@ -118,16 +134,6 @@ export async function POST(request: NextRequest) {
       },
       message: 'Account created successfully',
     });
-
-    response.cookies.set('session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    return response;
 
   } catch (error) {
     console.error('Signup error:', error);
