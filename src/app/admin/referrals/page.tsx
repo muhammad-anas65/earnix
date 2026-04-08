@@ -5,11 +5,20 @@ import { Gift, Copy, Share2 } from 'lucide-react';
 
 export default async function AdminReferralsPage() {
   // Gracefully fallback since schema might be under construction
-  const { data: referrals, error } = await supabaseAdmin
-    .from('referrals')
-    .select('*, users!referrals_referrer_id_fkey(name, email)') // basic self join fallback
-    .limit(10)
-    .catch(() => ({ data: [], error: null }));
+  let referrals: any[] | null = [];
+  let error: any = null;
+
+  try {
+    const res = await supabaseAdmin
+      .from('referrals')
+      .select('*, users!referrals_referrer_id_fkey(name, email)') // basic self join fallback
+      .limit(10);
+    referrals = res.data;
+    error = res.error;
+  } catch (err) {
+    referrals = [];
+    error = null;
+  }
 
   return (
     <div>
