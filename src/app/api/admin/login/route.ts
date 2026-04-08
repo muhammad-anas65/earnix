@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import { createSession } from '@/lib/auth';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -40,24 +41,31 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = Buffer.from(
-      JSON.stringify({
-        adminId: admin.id,
-        email: admin.email,
-        name: admin.name,
-        exp: Date.now() + 24 * 60 * 60 * 1000,
-      })
-    ).toString('base64');
+    const token = await createSession({
+      userId: admin.id,
+      email: admin.email,
+      role: 'admin',
+    });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
-      token,
       admin: {
         id: admin.id,
         email: admin.email,
         name: admin.name,
       },
+      message: 'Admin login successful',
     });
+
+    response.cookies.set('session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Admin login error:', error);
     return NextResponse.json(

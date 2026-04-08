@@ -14,16 +14,33 @@ export function middleware(request: NextRequest) {
   const session = sessionToken ? verifySession(sessionToken) : null;
 
   // API protection
-  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/')) {
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/') && !pathname.startsWith('/api/admin/login')) {
     if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
 
-  // Dashboard protection
+  // Dashboard protection for users
   if (pathname.startsWith('/dashboard') || pathname === '/payment' || pathname === '/pending-approval') {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url));
+    }
+    if (session.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+  }
+
+  // Admin protection
+  if (pathname.startsWith('/admin')) {
+    if (pathname === '/admin/login' || pathname === '/admin/register') {
+      if (session && session.role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
     }
   }
 
