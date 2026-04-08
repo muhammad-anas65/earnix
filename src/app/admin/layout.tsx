@@ -59,7 +59,11 @@ export default function AdminLayout({
           setAdminData(result.data);
           setIsAuthenticated(true);
         } else {
-          router.push('/admin/login');
+          if (pathname !== '/admin/login' && pathname !== '/admin/register') {
+            router.push('/admin/login');
+          } else {
+            setLoading(false);
+          }
         }
       } catch (err) {
         console.error(err);
