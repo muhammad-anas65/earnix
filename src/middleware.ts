@@ -25,7 +25,10 @@ export async function middleware(request: NextRequest) {
     return res;
   };
 
-  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/') && !pathname.startsWith('/api/admin/login')) {
+  if (pathname.startsWith('/api/') && 
+      !pathname.startsWith('/api/auth/') && 
+      !pathname.startsWith('/api/admin/login') && 
+      !pathname.startsWith('/api/admin/register')) {
     if (!isAuthUser && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
