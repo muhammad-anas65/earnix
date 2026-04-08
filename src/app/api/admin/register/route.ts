@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { error: 'Failed to create admin' },
+        { error: error.message || 'Failed to create admin' },
         { status: 500 }
       );
     }
