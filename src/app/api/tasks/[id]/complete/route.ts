@@ -59,6 +59,12 @@ export async function POST(
       .eq('date', today)
       .single();
 
+    const { data: wallet } = await supabaseAdmin
+      .from('wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
     if (dailyLog && dailyLog.tasks_completed >= (user.plan?.daily_task_limit || 2)) {
       return NextResponse.json(
         { success: false, error: 'Daily task limit reached' },

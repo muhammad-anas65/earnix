@@ -1,0 +1,56 @@
+﻿
+> earnix-website@1.0.0 build
+> next build
+
+   Γû▓ Next.js 14.1.0
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Users\Hazel\AppData\Roaming\ 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo          : NotS 
+   pecified: (Failed to compile.:  
+  String) [], RemoteException
+    + FullyQualifiedErrorId : Nati 
+   veCommandError
+ 
+
+./src/app/api/tasks/[id]/complete/r
+oute.ts:133:26
+Type error: Cannot find name 
+'wallet'.
+
+[0m [90m 131 |[39m       [33m.
+[39m[36mfrom[39m([32m'wallets'[
+39m)[0m
+[0m [90m 132 |[39m       
+[33m.[39mupdate({[0m
+[0m[31m[1m>[22m[39m[90m 133 
+|[39m         
+pending_points[33m:[39m (wallet[
+33m?[39m[33m.[39mpending_points 
+[33m||[39m [35m0[39m) 
+[33m+[39m 
+actualPoints[33m,[39m[0m
+[0m [90m     |[39m              
+            
+[31m[1m^[22m[39m[0m
+[0m [90m 134 |[39m         
+total_earned[33m:[39m (wallet[33
+m?[39m[33m.[39mtotal_earned 
+[33m||[39m [35m0[39m) 
+[33m+[39m 
+actualPoints[33m,[39m[0m
+[0m [90m 135 |[39m       })[0m
+[0m [90m 136 |[39m       [33m.
+[39meq([32m'user_id'[39m[33m,[3
+9m userId)[0m
