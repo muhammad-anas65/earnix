@@ -109,7 +109,7 @@ export default function AdminLayout({
         <div className="p-6 border-b border-gray-800">
           <Link href="/admin" className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-7 h-7 text-white" />
+              <TrendingUp className="w-9 h-9 text-white" />
             </div>
             {sidebarOpen && (
               <div>
@@ -134,7 +134,7 @@ export default function AdminLayout({
                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 )}
               >
-                <item.icon className="w-6 h-6" />
+                <item.icon className="w-8 h-8 shrink-0" />
                 {sidebarOpen && <span className="ml-4 font-medium">{item.name}</span>}
               </Link>
             );
@@ -146,7 +146,7 @@ export default function AdminLayout({
             onClick={handleLogout}
             className="flex items-center w-full px-5 py-4 text-gray-400 hover:bg-gray-800 hover:text-white rounded-xl transition-all"
           >
-            <LogOut className="w-6 h-6" />
+            <LogOut className="w-8 h-8 shrink-0" />
             {sidebarOpen && <span className="ml-4 font-medium">Logout</span>}
           </button>
         </div>
@@ -160,17 +160,17 @@ export default function AdminLayout({
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 hover:bg-gray-800 rounded-lg"
             >
-              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {sidebarOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-9 h-9" />
               </div>
               <span className="font-bold">Earnix Admin</span>
             </div>
           </div>
           <div className="relative">
-            <Bell className="w-6 h-6" />
+            <Bell className="w-8 h-8" />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">3</span>
           </div>
         </div>
@@ -182,8 +182,8 @@ export default function AdminLayout({
           <div className="bg-gray-900 w-72 h-full" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-800">
               <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-8 h-8 text-white" />
                 </div>
                 <span className="text-xl font-bold">Earnix</span>
               </div>
@@ -203,7 +203,7 @@ export default function AdminLayout({
                         : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                     )}
                   >
-                    <item.icon className="w-6 h-6" />
+                    <item.icon className="w-8 h-8 shrink-0" />
                     <span className="ml-4 font-medium">{item.name}</span>
                   </Link>
                 );
