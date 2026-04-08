@@ -50,38 +50,29 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    
-    if (!token) {
-      window.location.href = '/admin/login';
-      return;
-    }
-
-    try {
-      const decoded = JSON.parse(atob(token));
-      
-      if (!decoded.exp || decoded.exp < Date.now()) {
-        localStorage.removeItem('admin_token');
-        window.location.href = '/admin/login';
-        return;
+    const fetchAdmin = async () => {
+      try {
+        const res = await fetch('/api/admin/me');
+        const result = await res.json();
+        
+        if (result.success) {
+          setAdminData(result.data);
+          setIsAuthenticated(true);
+        } else {
+          router.push('/admin/login');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-      
-      setAdminData({ 
-        name: decoded.name || 'Admin', 
-        email: decoded.email || '' 
-      });
-      setIsAuthenticated(true);
-    } catch (e) {
-      localStorage.removeItem('admin_token');
-      window.location.href = '/admin/login';
-      return;
-    }
+    };
     
-    setLoading(false);
-  }, []);
+    fetchAdmin();
+  }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   };
 

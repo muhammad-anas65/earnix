@@ -32,7 +32,6 @@ export default function AdminLoginPage() {
         return;
       }
 
-      localStorage.setItem('admin_token', data.token);
       router.push('/admin');
     } catch {
       setError('Something went wrong');
