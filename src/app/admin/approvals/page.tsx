@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -30,39 +30,68 @@ interface PendingUser {
   created_at: string;
 }
 
-const mockUsers: PendingUser[] = [
-  { id: '1', name: 'Ahmed Khan', email: 'ahmed@example.com', phone: '+92 300 1234567', plan: 'Premium', plan_price: 1199, payment_status: 'submitted', transaction_id: 'EP123456789', referred_by: 'ERNX-ABC123', created_at: '2024-01-20 10:30 AM' },
-  { id: '2', name: 'Fatima Bibi', email: 'fatima@example.com', phone: '+92 301 2345678', plan: 'Free', plan_price: 0, payment_status: 'none', created_at: '2024-01-20 09:15 AM' },
-  { id: '3', name: 'Muhammad Ali', email: 'muhammad.ali@example.com', phone: '+92 302 3456789', plan: 'Ultra', plan_price: 1699, payment_status: 'pending', created_at: '2024-01-20 08:45 AM' },
-  { id: '4', name: 'Ayesha Sheikh', email: 'ayesha@example.com', phone: '+92 303 4567890', plan: 'Standard', plan_price: 500, payment_status: 'submitted', transaction_id: 'JC987654321', created_at: '2024-01-19 04:20 PM' },
-  { id: '5', name: 'Usman Malik', email: 'usman@example.com', phone: '+92 304 5678901', plan: 'Premium', plan_price: 1199, payment_status: 'submitted', transaction_id: 'EP987654321', created_at: '2024-01-19 02:10 PM' },
-];
-
 export default function ApprovalsPage() {
+  const [users, setUsers] = useState<PendingUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUser, setSelectedUser] = useState<PendingUser | null>(null);
 
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone.includes(searchQuery);
-    
-    if (filterStatus === 'all') return matchesSearch;
-    if (filterStatus === 'payment') return matchesSearch && user.plan_price > 0;
-    if (filterStatus === 'free') return matchesSearch && user.plan_price === 0;
-    
-    return matchesSearch;
-  });
-
-  const handleApprove = (user: PendingUser) => {
-    alert(`User ${user.name} approved successfully!`);
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch(`/api/admin/users?status=pending&search=${searchQuery}`);
+      const result = await resp.json();
+      if (result.success) {
+        setUsers(result.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReject = (user: PendingUser) => {
-    alert(`User ${user.name} rejected.`);
+  useEffect(() => {
+    fetchUsers();
+  }, [searchQuery]);
+
+  const handleApprove = async (user: PendingUser) => {
+    try {
+      const resp = await fetch(`/api/admin/users/${user.id}/approve`, { method: 'POST' });
+      const result = await resp.json();
+      if (result.success) {
+        setUsers(users.filter(u => u.id !== user.id));
+        alert('User approved successfully!');
+      } else {
+        alert(result.error || 'Failed to approve user');
+      }
+    } catch (err) {
+      alert('Error connecting to server');
+    }
   };
+
+  const handleReject = async (user: PendingUser) => {
+    const reason = prompt('Reason for rejection:');
+    if (reason === null) return;
+
+    try {
+      const resp = await fetch(`/api/admin/users/${user.id}/reject`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const result = await resp.json();
+      if (result.success) {
+        setUsers(users.filter(u => u.id !== user.id));
+        alert('User rejected.');
+      }
+    } catch (err) {
+      alert('Error connecting to server');
+    }
+  };
+
+  const filteredUsers = users; // Filtering moved to API for search, keeping status filter here if needed
 
   return (
     <div>

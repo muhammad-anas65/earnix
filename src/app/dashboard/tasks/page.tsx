@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   TrendingUp,
@@ -30,13 +30,7 @@ interface Task {
   task_type: string;
 }
 
-const mockTasks: Task[] = [
-  { id: '1', title: 'Complete Survey Task', description: 'Answer a short survey', points_min: 20, points_max: 50, task_type: 'survey' },
-  { id: '2', title: 'Watch Video Ad', description: 'Watch for 30 seconds', points_min: 15, points_max: 30, task_type: 'watch' },
-  { id: '3', title: 'App Download', description: 'Download and install', points_min: 25, points_max: 50, task_type: 'download' },
-  { id: '4', title: 'Daily Check-in', description: 'Login and claim bonus', points_min: 10, points_max: 20, task_type: 'click' },
-  { id: '5', title: 'Sign Up Offer', description: 'Sign up for partner app', points_min: 30, points_max: 80, task_type: 'signup' },
-];
+// Real tasks are fetched from API
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', active: true },
@@ -50,7 +44,41 @@ const navItems = [
 
 export default function TasksPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const dailyProgress = { completed: 3, limit: 10 };
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [dailyStats, setDailyStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch('/api/tasks');
+      const result = await resp.json();
+      if (result.success) {
+        setTasks(result.data.tasks);
+        setDailyStats(result.data.dailyStats);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (isLoading || !dailyStats) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+    </div>;
+  }
+
+  const dailyProgress = { 
+    completed: dailyStats.tasks_completed, 
+    limit: dailyStats.daily_limit,
+    points: dailyStats.points_earned
+  };
 
   const getTaskIcon = (type: string) => {
     const icons: Record<string, string> = {
@@ -146,7 +174,7 @@ export default function TasksPage() {
                 <p className="text-gray-500">{dailyProgress.limit - dailyProgress.completed} tasks remaining today</p>
               </div>
               <div className="text-right">
-                <span className="text-3xl font-bold text-primary-600">{formatPoints(145)}</span>
+                <span className="text-3xl font-bold text-primary-600">{formatPoints(dailyProgress.points)}</span>
                 <p className="text-gray-500">points earned today</p>
               </div>
             </div>
@@ -160,7 +188,7 @@ export default function TasksPage() {
 
           {/* Tasks List */}
           <div className="space-y-4">
-            {mockTasks.map((task) => (
+            {tasks.map((task) => (
               <div key={task.id} className="card p-6 hover:shadow-lg transition-all">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-5">
@@ -181,9 +209,9 @@ export default function TasksPage() {
                       </div>
                     </div>
                   </div>
-                  <button className="btn-primary py-3 px-8">
+                  <Link href={`/dashboard/tasks/${task.id}`} className="btn-primary py-3 px-8 text-center">
                     Start
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}

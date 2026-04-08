@@ -94,13 +94,20 @@ export async function POST(
       );
     }
 
-    await supabaseAdmin.from('user_tasks').insert({
+    const { error: userTaskError } = await supabaseAdmin.from('user_tasks').insert({
       user_id: userId,
       task_id: taskId,
       status: 'completed',
       points_earned: actualPoints,
       completed_at: new Date().toISOString(),
     });
+
+    if (userTaskError) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to record task completion' },
+        { status: 500 }
+      );
+    }
 
     if (dailyLog) {
       await supabaseAdmin
@@ -120,19 +127,64 @@ export async function POST(
       });
     }
 
-    const { data: wallet } = await supabaseAdmin
-      .from('wallets')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    await supabaseAdmin
+    const { data: updatedWallet } = await supabaseAdmin
       .from('wallets')
       .update({
         pending_points: (wallet?.pending_points || 0) + actualPoints,
         total_earned: (wallet?.total_earned || 0) + actualPoints,
       })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    // Referral logic: Release reward if this is the 3rd task
+    const { count: totalCompleted } = await supabaseAdmin
+      .from('user_tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'completed');
+
+    if (totalCompleted === 3) {
+      const { data: referral } = await supabaseAdmin
+        .from('referrals')
+        .select('*')
+        .eq('referred_id', userId)
+        .eq('status', 'pending')
+        .single();
+      
+      if (referral) {
+        await supabaseAdmin
+          .from('referrals')
+          .update({ 
+            status: 'qualified', 
+            qualified_at: new Date().toISOString(),
+          })
+          .eq('id', referral.id);
+
+        const { data: referrerWallet } = await supabaseAdmin
+          .from('wallets')
+          .select('*')
+          .eq('user_id', referral.referrer_id)
+          .single();
+
+        if (referrerWallet) {
+          await supabaseAdmin
+            .from('wallets')
+            .update({
+              available_points: referrerWallet.available_points + referral.reward_points,
+              total_earned: referrerWallet.total_earned + referral.reward_points,
+            })
+            .eq('user_id', referral.referrer_id);
+
+          await supabaseAdmin.from('notifications').insert({
+            user_id: referral.referrer_id,
+            title: 'Referral Reward! 🎁',
+            body: `Your referral ${user.name} completed 3 tasks. You earned ${referral.reward_points} points!`,
+            type: 'referral',
+          });
+        }
+      }
+    }
 
     await supabaseAdmin.from('notifications').insert({
       user_id: userId,

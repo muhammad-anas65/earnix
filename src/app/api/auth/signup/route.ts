@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateReferralCode } from '@/lib/utils';
+import { createSession } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -101,7 +102,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({
+    const token = await createSession({
+      userId: newUser.id,
+      email: newUser.email,
+      role: 'user',
+    });
+
+    const response = NextResponse.json({
       success: true,
       data: {
         uid: newUser.id,
@@ -111,6 +118,16 @@ export async function POST(request: NextRequest) {
       },
       message: 'Account created successfully',
     });
+
+    response.cookies.set('session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Signup error:', error);

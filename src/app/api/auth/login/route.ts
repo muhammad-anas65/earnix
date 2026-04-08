@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '@/lib/supabase';
+import { createSession } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +47,13 @@ export async function POST(request: NextRequest) {
 
     delete user.password_hash;
 
-    return NextResponse.json({
+    const token = await createSession({
+      userId: user.id,
+      email: user.email,
+      role: 'user', // Basic role for now
+    });
+
+    const response = NextResponse.json({
       success: true,
       data: {
         user: {
@@ -62,6 +69,16 @@ export async function POST(request: NextRequest) {
       },
       message: 'Login successful',
     });
+
+    response.cookies.set('session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Login error:', error);

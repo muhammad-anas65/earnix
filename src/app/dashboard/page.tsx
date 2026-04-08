@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -63,33 +63,6 @@ interface Referral {
   created_at: string;
 }
 
-const mockUser: User = {
-  id: '1',
-  name: 'Ahmed Khan',
-  email: 'ahmed@example.com',
-  phone: '+92 300 1234567',
-  referral_code: 'ERNX-ABC123',
-  plan_id: 'premium',
-  plan: DEFAULT_PLANS.find(p => p.id === 'premium'),
-  status: 'active',
-};
-
-const mockWallet: WalletData = {
-  available_points: 2450,
-  pending_points: 320,
-  locked_points: 500,
-  total_earned: 5420,
-  total_withdrawn: 1200,
-};
-
-const mockTasks: Task[] = [
-  { id: '1', title: 'Complete Survey Task', description: 'Answer a short survey', points_min: 20, points_max: 50, task_type: 'survey' },
-  { id: '2', title: 'Watch Video Ad', description: 'Watch for 30 seconds', points_min: 15, points_max: 30, task_type: 'watch' },
-  { id: '3', title: 'App Download', description: 'Download and install', points_min: 25, points_max: 50, task_type: 'download' },
-  { id: '4', title: 'Daily Check-in', description: 'Login and claim bonus', points_min: 10, points_max: 20, task_type: 'click' },
-  { id: '5', title: 'Sign Up Offer', description: 'Sign up for partner app', points_min: 30, points_max: 80, task_type: 'signup' },
-];
-
 const mockReferrals: Referral[] = [
   { id: '1', referred_name: 'Fatima Bibi', status: 'qualified', reward_points: 250, created_at: '2024-01-15' },
   { id: '2', referred_name: 'Muhammad Ali', status: 'pending', reward_points: 0, created_at: '2024-01-18' },
@@ -108,6 +81,44 @@ const navItems = [
 export default function DashboardPage() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [wallet, setWallet] = useState<any>(null);
+  const [dailyStats, setDailyStats] = useState<any>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch('/api/users/me');
+      const result = await resp.json();
+      if (result.success) {
+        setUser(result.data.user);
+        setWallet(result.data.wallet);
+        setDailyStats(result.data.dailyStats);
+      }
+
+      const tasksResp = await fetch('/api/tasks');
+      const tasksResult = await tasksResp.json();
+      if (tasksResult.success) {
+        setTasks(tasksResult.data.tasks.slice(0, 5)); // Show top 5
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (isLoading || !user) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+    </div>;
+  }
 
   const getTaskIcon = (type: string) => {
     const icons: Record<string, string> = {
@@ -156,7 +167,10 @@ export default function DashboardPage() {
         
         <div className="absolute bottom-6 left-4 right-4">
           <button 
-            onClick={() => router.push('/')}
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              router.push('/');
+            }}
             className="flex items-center w-full px-5 py-4 text-gray-600 hover:bg-gray-50 rounded-xl transition-all"
           >
             <LogOut className="w-6 h-6" />
@@ -224,7 +238,7 @@ export default function DashboardPage() {
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-500">Welcome back, {mockUser.name}!</p>
+                <p className="text-gray-500">Welcome back, {user.name}!</p>
               </div>
             </div>
             
@@ -235,11 +249,11 @@ export default function DashboardPage() {
               </Link>
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold text-lg">
-                  {getInitials(mockUser.name)}
+                  {getInitials(user.name)}
                 </div>
                 <div className="hidden md:block">
-                  <p className="font-semibold text-gray-900">{mockUser.name}</p>
-                  <p className="text-sm text-gray-500">{mockUser.plan?.display_name} Plan</p>
+                  <p className="font-semibold text-gray-900">{user.name}</p>
+                  <p className="text-sm text-gray-500">{user.plan?.display_name || 'Free'} Plan</p>
                 </div>
               </div>
             </div>
@@ -262,10 +276,10 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                {formatPoints(mockWallet.available_points)} pts
+                {formatPoints(wallet.available_points)} pts
               </h3>
               <p className="text-gray-500">
-                = {formatCurrency(mockWallet.available_points * 0.1)}
+                = {formatCurrency(wallet.available_points * 0.1)}
               </p>
             </div>
             
@@ -281,7 +295,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                {formatPoints(mockWallet.pending_points)} pts
+                {formatPoints(wallet.pending_points)} pts
               </h3>
               <p className="text-gray-500">Processing rewards</p>
             </div>
@@ -314,7 +328,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                {formatPoints(mockWallet.total_earned)} pts
+                {formatPoints(wallet.total_earned)} pts
               </h3>
               <p className="text-gray-500">Total earned</p>
             </div>
@@ -336,19 +350,19 @@ export default function DashboardPage() {
                   <div className="mt-6">
                     <div className="flex items-center justify-between text-sm mb-3">
                       <span className="text-gray-600 font-medium">Daily Progress</span>
-                      <span className="font-semibold">3/{mockUser.plan?.daily_task_limit || 10} tasks</span>
+                      <span className="font-semibold">{dailyStats.tasks_completed}/{dailyStats.daily_limit} tasks</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
                         className="bg-gradient-primary h-3 rounded-full transition-all"
-                        style={{ width: '30%' }}
+                        style={{ width: `${Math.min((dailyStats.tasks_completed / dailyStats.daily_limit) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
                 </div>
                 
                 <div className="divide-y divide-gray-100">
-                  {mockTasks.map((task) => (
+                  {tasks.map((task) => (
                     <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-5">
@@ -392,7 +406,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="bg-white/20 rounded-xl p-4 mb-5">
                   <p className="text-xs text-white/70 mb-2">Your Referral Code</p>
-                  <p className="font-mono font-bold text-2xl">{mockUser.referral_code}</p>
+                  <p className="font-mono font-bold text-2xl">{user.referral_code}</p>
                 </div>
                 <button className="w-full bg-white text-primary-600 font-bold py-4 rounded-xl hover:bg-white/90 transition-colors">
                   Share Code

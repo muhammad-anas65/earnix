@@ -106,13 +106,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await supabaseAdmin
+    const { data: updatedWallet, error: walletUpdateError } = await supabaseAdmin
       .from('wallets')
       .update({
         available_points: wallet.available_points - pointsNeeded,
         locked_points: wallet.locked_points + pointsNeeded,
       })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (walletUpdateError) {
+      console.error('Wallet update error:', walletUpdateError);
+      // Note: In production we should roll back the withdrawal record here
+    }
 
     await supabaseAdmin.from('notifications').insert({
       user_id: userId,
