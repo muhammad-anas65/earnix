@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const protectedPaths = ['/dashboard', '/api/users', '/api/tasks', '/api/wallet', '/api/withdrawals', '/api/payments'];
-  const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
+  const authPaths = ['/login', '/signup', '/forgot-password'];
 
   const { supabaseResponse, user } = await updateSession(request);
   
