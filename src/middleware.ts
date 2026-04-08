@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
   
   const sessionToken = request.cookies.get('session')?.value;
-  const legacySession = sessionToken ? verifySession(sessionToken) : null;
+  const legacySession = sessionToken ? await verifySession(sessionToken) : null;
 
   const isAdmin = legacySession?.role === 'admin';
   const isAuthUser = !!user;
