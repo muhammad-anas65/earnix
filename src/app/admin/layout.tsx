@@ -76,6 +76,10 @@ export default function AdminLayout({
     router.push('/admin/login');
   };
 
+  if (pathname === '/admin/login' || pathname === '/admin/register') {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
