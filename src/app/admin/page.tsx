@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Users, 
   CreditCard, 
@@ -22,6 +23,7 @@ import { formatCurrency, formatPoints, formatDateTime } from '@/lib/utils';
 import UserActions from '@/components/admin/UserActions';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<any[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
   const [recentWithdrawals, setRecentWithdrawals] = useState<any[]>([]);
@@ -95,21 +97,22 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-10">
+    <div className="space-y-8 lg:space-y-12">
+      {/* Header with Control Actions */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Overview of your platform performance</p>
+          <h1 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tight">Platform Intelligence</h1>
+          <p className="text-slate-500 font-medium mt-2">Real-time operational overview across all segments.</p>
         </div>
         
-        <div className="flex items-center space-x-2 bg-white rounded-xl p-1 border">
-          {['24h', '7d', '30d', '90d'].map((range) => (
+        <div className="flex items-center space-x-3 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
+          {['24h', '7d', '30d'].map((range) => (
             <button
               key={range}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 range === '7d' 
-                  ? 'bg-primary-600 text-white' 
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-slate-900 text-white shadow-lg' 
+                  : 'text-slate-400 hover:text-slate-900'
               }`}
             >
               {range}
@@ -118,130 +121,126 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-10">
+      {/* High Density Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 lg:gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="card p-7">
-            <div className="flex items-center justify-between mb-5">
-              <div className={`w-14 h-14 ${stat.color} rounded-2xl flex items-center justify-center`}>
-                <stat.icon className="w-7 h-7 text-white" />
+          <div key={index} className="premium-card !p-6 group hover:bg-slate-900 hover:text-white transition-all duration-500">
+            <div className="flex items-center justify-between mb-6">
+              <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
-              <span className={`flex items-center text-sm font-semibold ${
-                stat.change >= 0 ? 'text-green-600' : 'text-red-600'
+              <div className={`flex items-center text-[10px] font-black px-2 py-1 rounded-lg ${
+                stat.change >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
               }`}>
-                {stat.change >= 0 ? (
-                  <ArrowUpRight className="w-4 h-4 mr-1" />
-                ) : (
-                  <ArrowDownRight className="w-4 h-4 mr-1" />
-                )}
-                {Math.abs(stat.change)}%
-              </span>
+                {stat.change >= 0 ? '↑' : '↓'}{Math.abs(stat.change)}%
+              </div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-            <p className="text-sm text-gray-500">{stat.title}</p>
+            <p className="text-2xl lg:text-3xl font-black tracking-tighter mb-1">{stat.value}</p>
+            <p className="text-[10px] text-slate-400 group-hover:text-slate-500 font-black uppercase tracking-widest">{stat.title}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Pending Approvals */}
-        <div className="card">
-          <div className="p-7 border-b border-gray-100 flex items-center justify-between">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* Verification Queue - High Density */}
+        <div className="premium-card overflow-hidden !p-0">
+          <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Pending Approvals</h2>
-              <p className="text-sm text-gray-500">{pendingApprovals.length} users waiting</p>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Verification Queue</h2>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">{pendingApprovals.length} PENDING DECISIONS</p>
             </div>
-            <Link href="/admin/approvals" className="text-primary-600 hover:underline font-semibold">
-              View All
+            <Link href="/admin/approvals" className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all">
+              <ArrowUpRight className="w-5 h-5" />
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-slate-100">
             {pendingApprovals.length === 0 ? (
-               <div className="p-10 text-center text-gray-500">No pending approvals</div>
+               <div className="p-20 text-center">
+                  <Clock className="w-12 h-12 text-slate-100 mx-auto mb-4" />
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Everything Processed</p>
+               </div>
             ) : pendingApprovals.map((user) => (
-              <div key={user.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
+              <div key={user.id} className="p-8 hover:bg-slate-50 transition-all group">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold">
-                      {user.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
+                    <div className="w-14 h-14 bg-indigo-50 border border-indigo-100 rounded-[1.25rem] flex items-center justify-center text-indigo-600 font-black text-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                      {user.name?.charAt(0) || 'U'}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="font-black text-slate-900 tracking-tight leading-none mb-1">{user.name}</p>
+                      <p className="text-xs font-medium text-slate-400">{user.email}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="badge bg-purple-100 text-purple-700 mb-1">{user.plan?.display_name || 'Free'}</span>
-                    <p className="text-xs text-gray-500">{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+                  <div className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">
+                    {user.plan?.display_name || 'FREE'}
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className={`badge ${
-                    user.payment_status === 'submitted' 
-                      ? 'bg-yellow-100 text-yellow-700' 
-                      : user.payment_status === 'pending'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {user.payment_status === 'none' ? 'Free Plan' : user.payment_status}
-                  </span>
-                  <div className="flex space-x-2">
-                    <UserActions userId={user.id} userStatus={user.status} />
-                  </div>
+                
+                <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                   <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status: {user.payment_status}</span>
+                   </div>
+                   <UserActions userId={user.id} userStatus={user.status} />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Withdrawals */}
-        <div className="card">
-          <div className="p-7 border-b border-gray-100 flex items-center justify-between">
+        {/* Withdrawal Ledger */}
+        <div className="premium-card overflow-hidden !p-0">
+          <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Recent Withdrawals</h2>
-              <p className="text-sm text-gray-500">Latest withdrawal requests</p>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Withdrawal Ledger</h2>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">LATEST TREASURY OUTFLOWS</p>
             </div>
-            <Link href="/admin/withdrawals" className="text-primary-600 hover:underline font-semibold">
-              View All
+            <Link href="/admin/withdrawals" className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all">
+              <ArrowUpRight className="w-5 h-5" />
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-slate-100">
             {recentWithdrawals.map((withdrawal) => (
-              <div key={withdrawal.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900">{withdrawal.user}</p>
-                    <p className="text-sm text-gray-500">
-                      {withdrawal.method === 'easypaisa' ? 'EasyPaisa' : 'JazzCash'}
-                    </p>
+              <div key={withdrawal.id} className="p-8 hover:bg-slate-50 transition-all">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center space-x-6">
+                     <div className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm">
+                        <Wallet className="w-6 h-6 text-slate-400" />
+                     </div>
+                     <div>
+                        <p className="font-black text-slate-900 tracking-tight text-lg mb-1">{withdrawal.user}</p>
+                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">VIA {withdrawal.method}</p>
+                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900">{formatCurrency(withdrawal.amount)}</p>
-                    <p className="text-xs text-gray-500">{withdrawal.created_at}</p>
+                    <p className="text-2xl font-black tracking-tighter text-slate-900">₨ {withdrawal.amount.toLocaleString()}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{withdrawal.created_at}</p>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className={`badge ${
-                    withdrawal.status === 'paid' 
-                      ? 'bg-green-100 text-green-700' 
-                      : withdrawal.status === 'approved'
-                      ? 'bg-blue-100 text-blue-700'
-                      : withdrawal.status === 'pending'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {withdrawal.status}
-                  </span>
-                  {withdrawal.status === 'pending' && (
-                    <div className="flex space-x-2">
-                      <button className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-semibold">
-                        Approve
-                      </button>
-                      <button className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-semibold">
-                        Reject
-                      </button>
-                    </div>
-                  )}
+                
+                <div className="flex items-center justify-between">
+                   <span className={cn(
+                      'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border',
+                      withdrawal.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-green-50 text-green-700 border-green-100'
+                   )}>
+                      {withdrawal.status}
+                   </span>
+                    {withdrawal.status === 'pending' && (
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => router.push('/admin/withdrawals')}
+                          className="px-6 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 hover:scale-105 active:scale-95 transition-all"
+                        >
+                          PAY NOW
+                        </button>
+                        <button 
+                          onClick={() => router.push('/admin/withdrawals')}
+                          className="px-6 py-3 bg-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-600 transition-all"
+                        >
+                          REJECT
+                        </button>
+                      </div>
+                    )}
                 </div>
               </div>
             ))}
@@ -249,59 +248,25 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Quick Stats Cards */}
-      <div className="grid lg:grid-cols-4 gap-6 mt-8">
-        <Link href="/admin/users" className="card p-7 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-2">New Users Today</p>
-              <p className="text-4xl font-bold text-gray-900">+234</p>
-            </div>
-            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
-              <UserPlus className="w-7 h-7 text-blue-600" />
-            </div>
-          </div>
-          <p className="text-sm text-green-600 mt-4 font-semibold">↑ 15% from yesterday</p>
-        </Link>
-
-        <Link href="/admin/tasks" className="card p-7 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Tasks Completed</p>
-              <p className="text-4xl font-bold text-gray-900">12,456</p>
-            </div>
-            <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
-              <Target className="w-7 h-7 text-green-600" />
-            </div>
-          </div>
-          <p className="text-sm text-green-600 mt-4 font-semibold">↑ 8% from yesterday</p>
-        </Link>
-
-        <Link href="/admin/referrals" className="card p-7 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Referrals</p>
-              <p className="text-4xl font-bold text-gray-900">1,892</p>
-            </div>
-            <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center">
-              <Gift className="w-7 h-7 text-purple-600" />
-            </div>
-          </div>
-          <p className="text-sm text-green-600 mt-4 font-semibold">↑ 23% from yesterday</p>
-        </Link>
-
-        <div className="card p-7">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Conversion Rate</p>
-              <p className="text-4xl font-bold text-gray-900">68%</p>
-            </div>
-            <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
-              <TrendingUp className="w-7 h-7 text-yellow-600" />
-            </div>
-          </div>
-          <p className="text-sm text-green-600 mt-4 font-semibold">↑ 5% from last week</p>
-        </div>
+      {/* Auxiliary Metrics Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+         {[
+           { label: 'User Growth', value: '+234', icon: UserPlus, trend: '+15.2%' },
+           { label: 'Task Throughput', value: '12.4k', icon: Target, trend: '+8.4%' },
+           { label: 'Network Points', value: '1.2M', icon: Gift, trend: '+12.1%' },
+           { label: 'Conversion Velocity', value: '68%', icon: Activity, trend: '+3.2%' },
+         ].map((aux, i) => (
+           <div key={i} className="premium-card !p-8 border-2 border-dashed border-slate-100 !bg-transparent hover:border-indigo-200 hover:bg-indigo-50/10 transition-all">
+              <div className="flex items-center justify-between mb-6">
+                 <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                    <aux.icon className="w-6 h-6 text-slate-400" />
+                 </div>
+                 <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">{aux.trend}</span>
+              </div>
+              <p className="text-3xl font-black text-slate-900 tracking-tighter mb-1">{aux.value}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{aux.label}</p>
+           </div>
+         ))}
       </div>
     </div>
   );

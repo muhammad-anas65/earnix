@@ -84,19 +84,19 @@ export default function UserDashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col lg:flex-row overflow-x-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="bg-white border-r border-gray-100 w-64 fixed left-0 top-0 h-full z-40 hidden lg:block shadow-sm">
-        <div className="p-8 border-b border-gray-50">
-          <Link href="/dashboard" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <Zap className="w-6 h-6 text-white" />
+      <aside className="bg-white border-r border-slate-100 w-72 fixed left-0 top-0 h-full z-40 hidden lg:flex flex-col shadow-[10px_0_40px_-15px_rgba(0,0,0,0.03)]">
+        <div className="p-8">
+          <Link href="/dashboard" className="flex items-center space-x-3 group">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
+              <Zap className="w-7 h-7 text-white" />
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-indigo-600">Earnix</span>
+            <span className="text-2xl font-black text-slate-800 tracking-tight">Earnix</span>
           </Link>
         </div>
         
-        <nav className="p-4 mt-4 space-y-1">
+        <nav className="flex-1 px-4 mt-4 space-y-1.5 overflow-y-auto hide-scrollbar">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -104,111 +104,91 @@ export default function UserDashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center px-4 py-3.5 rounded-xl transition-all font-medium',
+                  'flex items-center px-5 py-4 rounded-2xl transition-all duration-200 font-bold group',
                   isActive 
-                    ? 'bg-primary-50 text-primary-600' 
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm'
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
-                <item.icon className={cn("w-5 h-5 mr-3 shrink-0", isActive ? "text-primary-600" : "text-gray-400")} />
-                {item.name}
+                <item.icon className={cn("w-5 h-5 mr-4 transition-colors", isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
+                <span className="text-sm tracking-tight">{item.name}</span>
               </Link>
             );
           })}
         </nav>
         
-        <div className="absolute bottom-8 left-6 right-6">
+        <div className="p-6 border-t border-slate-50">
           <button 
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3.5 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all text-sm font-medium"
+            className="flex items-center w-full px-5 py-4 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-all font-bold text-sm"
           >
-            <LogOut className="w-5 h-5 mr-3" />
-            Logout
+            <LogOut className="w-5 h-5 mr-4" />
+            Sign Out
           </button>
         </div>
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50" onClick={() => setSidebarOpen(false)}>
-          <div className="bg-white w-72 h-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-xl font-bold text-primary-600">Earnix</span>
-              </div>
-              <button onClick={() => setSidebarOpen(false)} className="p-2 text-gray-400">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <nav className="p-4 space-y-1">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      'flex items-center px-4 py-3.5 rounded-xl transition-all font-medium',
-                      isActive 
-                        ? 'bg-primary-50 text-primary-600' 
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm'
-                    )}
-                  >
-                    <item.icon className={cn("w-5 h-5 mr-3 shrink-0", isActive ? "text-primary-600" : "text-gray-400")} />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      {/* Main Content Area */}
+      <div className="flex-1 lg:ml-72 flex flex-col min-h-screen pb-24 lg:pb-0">
         {/* User Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 lg:px-10 py-4">
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 px-4 lg:px-10 py-4 lg:py-6">
+          <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div className="hidden sm:block">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Welcome back</p>
-                <h1 className="text-lg font-bold text-slate-800">{userData?.name}</h1>
+              <div className="lg:hidden w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="hidden lg:block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">Active Account</p>
+                <h1 className="text-lg lg:text-xl font-black text-slate-900 tracking-tight">{userData?.name}</h1>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-               <div className="hidden md:flex items-center bg-primary-50 rounded-full px-4 py-2 border border-primary-100">
-                  <TrendingUp className="w-4 h-4 text-primary-600 mr-2" />
-                  <span className="text-xs font-bold text-primary-700 whitespace-nowrap">{userData?.plan} Member</span>
+            <div className="flex items-center space-x-3">
+               <div className="hidden sm:flex items-center bg-green-50 rounded-full px-4 py-1.5 border border-green-100">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                  <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">{userData?.plan}</span>
                </div>
                
-               <Link href="/dashboard/notifications" className="relative p-2.5 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
+               <Link href="/dashboard/notifications" className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 transition-colors relative">
                   <Bell className="w-5 h-5" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full border-2 border-white"></span>
                </Link>
                
-               <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-500/30">
-                  {getInitials(userData?.name || 'User')}
+               <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-xl ring-4 ring-white">
+                  {getInitials(userData?.name || 'U')}
                </div>
             </div>
           </div>
         </header>
 
         {/* Dash Page Wrapper */}
-        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
-          {children}
+        <main className="flex-1 p-4 lg:p-10 max-w-7xl mx-auto w-full">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {children}
+          </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 px-6 py-4 flex items-center justify-between z-50 rounded-t-[2.5rem] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+        {navigation.slice(0, 5).map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link 
+              key={item.name} 
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center space-y-1 transition-all",
+                isActive ? "text-primary-600 scale-110" : "text-slate-400"
+              )}
+            >
+              <item.icon className="w-6 h-6" />
+              <span className="text-[10px] font-black uppercase tracking-tighter">{item.name.split(' ')[0]}</span>
+            </Link>
+          );
+        })}
+      </nav>
+      <Toaster position="top-right" />
     </div>
   );
 }

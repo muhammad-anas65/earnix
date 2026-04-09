@@ -122,211 +122,184 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-10">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Available Balance */}
-        <div className="card p-7 hover-scale border-l-4 border-green-500 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center">
-              <Wallet className="w-7 h-7 text-green-600" />
-            </div>
-            <span className="text-green-600 text-xs font-bold bg-green-50 px-3 py-1 rounded-full border border-green-100 uppercase tracking-wider">
-              Ready
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {formatPoints(wallet.available_points)} pts
-          </h3>
-          <p className="text-gray-500 font-medium text-sm">
-            ≈ {formatCurrency(wallet.available_points * 0.1)}
-          </p>
+    <div className="space-y-8 lg:space-y-12">
+      {/* Dynamic Welcome Heading */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tight">Your Earnings</h2>
+          <p className="text-slate-500 font-medium mt-2">Manage your assets and track your daily performance.</p>
         </div>
-        
-        {/* Pending Balance */}
-        <div className="card p-7 hover-scale border-l-4 border-yellow-500 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <div className="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center">
-              <Clock className="w-7 h-7 text-yellow-600" />
-            </div>
-            <span className="text-yellow-600 text-xs font-bold bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100 uppercase tracking-wider">
-              Holding
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {formatPoints(wallet.pending_points)} pts
-          </h3>
-          <p className="text-gray-500 font-medium text-sm">Verification in progress</p>
-        </div>
-        
-        {/* Today's Progress */}
-        <div className="card p-7 hover-scale border-l-4 border-primary-500 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center">
-              <Zap className="w-7 h-7 text-primary-600" />
-            </div>
-            <span className="text-primary-600 text-xs font-bold bg-primary-50 px-3 py-1 rounded-full border border-primary-100 uppercase tracking-wider">
-              Daily
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {dailyStats.tasks_completed}/{dailyStats.daily_limit} tasks
-          </h3>
-          <p className="text-gray-500 font-medium text-sm">Task limit resets daily</p>
-        </div>
-        
-        {/* Total Earned */}
-        <div className="card p-7 hover-scale border-l-4 border-indigo-500 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center">
-              <Award className="w-7 h-7 text-indigo-600" />
-            </div>
-            <span className="text-indigo-600 text-xs font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-wider">
-              Total
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {formatPoints(wallet.total_earned)} pts
-          </h3>
-          <p className="text-gray-500 font-medium text-sm">Overall performance</p>
+        <div className="flex items-center space-x-3">
+          <Link href="/dashboard/withdraw" className="btn-premium py-3 px-6 text-sm">Withdraw Cash</Link>
+          <Link href="/dashboard/tasks" className="btn-ghost py-3 px-6 text-sm">View Tasks</Link>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Tasks Section */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="card overflow-hidden">
-            <div className="p-7 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-800">Earn Points</h2>
-                  <p className="text-gray-500 mt-0.5 text-sm">Complete available tasks to fill your wallet</p>
-                </div>
-                <Link href="/dashboard/tasks" className="text-primary-600 hover:text-primary-700 font-bold text-sm bg-primary-50 px-4 py-2 rounded-lg transition-colors">
-                  View All
-                </Link>
+      {/* Main Balance Card - High Impact */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-primary-600 to-primary-700 rounded-[2.5rem] p-8 lg:p-12 text-white shadow-2xl shadow-primary-500/20">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+        <div className="relative z-10 grid lg:grid-cols-3 gap-12 lg:gap-8 items-center">
+           <div className="lg:col-span-2">
+             <div className="flex items-center space-x-3 mb-6">
+                <Wallet className="w-6 h-6 text-indigo-200" />
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-indigo-100">Total Available Points</span>
+             </div>
+             <div className="flex flex-col md:flex-row md:items-baseline md:space-x-4">
+                <h3 className="text-5xl lg:text-7xl font-black tracking-tighter mb-2">{formatPoints(wallet.available_points)}</h3>
+                <span className="text-2xl text-indigo-200 font-bold">PTS</span>
+             </div>
+             <p className="text-xl text-indigo-100/80 font-medium mt-2">
+               Approximately <span className="text-white font-black">{formatCurrency(wallet.available_points * 0.1)}</span> Ready
+             </p>
+           </div>
+           
+           <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8">
+              <div className="flex items-center justify-between mb-6">
+                <Clock className="w-5 h-5 text-indigo-200" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Pending Review</span>
               </div>
-              
-              {/* Daily Progress Bar */}
-              <div className="mt-8">
-                <div className="flex items-center justify-between text-sm mb-3">
-                  <span className="text-slate-600 font-bold">Daily Task Limit</span>
-                  <span className="font-bold text-primary-600">{dailyStats.tasks_completed} / {dailyStats.daily_limit} completed</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-4 relative overflow-hidden ring-4 ring-white shadow-inner">
-                  <div 
-                    className="bg-gradient-to-r from-primary-500 to-indigo-600 h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((dailyStats.tasks_completed / dailyStats.daily_limit) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
+              <p className="text-3xl font-black mb-1">{formatPoints(wallet.pending_points)} <span className="text-sm font-bold opacity-60">PTS</span></p>
+              <p className="text-xs font-medium text-indigo-100/60 uppercase tracking-widest">Verification Status: active</p>
+           </div>
+        </div>
+      </div>
+
+      {/* Grid: Tasks & Secondary Metrics */}
+      <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+        <div className="lg:col-span-2 space-y-10">
+          
+          {/* Daily Progress */}
+          <div className="premium-card !p-10">
+            <div className="flex items-center justify-between mb-10">
+               <div>
+                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">Daily Efficiency</h3>
+                 <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-tight">Track your points generation velocity</p>
+               </div>
+               <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary-600 font-black">
+                  {Math.round((dailyStats.tasks_completed / dailyStats.daily_limit) * 100)}%
+               </div>
             </div>
             
-            <div className="divide-y divide-gray-100">
+            <div className="relative pt-1">
+              <div className="flex mb-4 items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black inline-block py-1 px-3 uppercase rounded-full text-primary-600 bg-primary-50">
+                    Velocity Tracking
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-black inline-block text-primary-600 uppercase tracking-widest">
+                    {dailyStats.tasks_completed} / {dailyStats.daily_limit} TARGET REACHED
+                  </span>
+                </div>
+              </div>
+              <div className="overflow-hidden h-6 mb-4 text-xs flex rounded-full bg-slate-100 ring-8 ring-slate-50/50">
+                <div 
+                  style={{ width: `${Math.min((dailyStats.tasks_completed / dailyStats.daily_limit) * 100, 100)}%` }}
+                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-1000"
+                ></div>
+              </div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-6">Next Reset In: 08:42:12</p>
+            </div>
+          </div>
+
+          {/* Quick Tasks */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+               <h3 className="text-2xl font-black text-slate-900 tracking-tight">Priority Work</h3>
+               <Link href="/dashboard/tasks" className="text-xs font-black text-indigo-600 uppercase tracking-widest hover:underline">All Tasks</Link>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4">
               {tasks.length === 0 ? (
-                <div className="p-20 text-center">
-                   <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                   <p className="text-gray-500 font-medium">No tasks currently available for your plan.</p>
+                <div className="premium-card text-center !p-20">
+                   <Target className="w-16 h-16 text-slate-200 mx-auto mb-6" />
+                   <p className="text-slate-400 font-bold uppercase tracking-widest">No Priority Tasks Match Your Plan</p>
                 </div>
               ) : tasks.map((task) => (
-                <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors group">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-6">
-                      <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-3xl shadow-sm group-hover:shadow-md transition-shadow">
-                        {getTaskIcon(task.task_type)}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-slate-800 text-xl">{task.title}</h3>
-                        <p className="text-gray-500 mt-1 line-clamp-1">{task.description}</p>
-                        <div className="flex items-center mt-3 bg-yellow-50 w-fit px-3 py-1 rounded-lg border border-yellow-100">
-                          <Star className="w-4 h-4 text-yellow-500 mr-2 fill-yellow-500" />
-                          <span className="font-bold text-yellow-700 text-sm">
-                            {task.points_min}-{task.points_max} pts reward
-                          </span>
-                        </div>
+                <div key={task.id} className="premium-card group !p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-900 hover:text-white transition-all duration-500">
+                  <div className="flex items-center space-x-6">
+                    <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-white/10 group-hover:scale-110 transition-all">
+                      {getTaskIcon(task.task_type)}
+                    </div>
+                    <div>
+                      <h4 className="font-black tracking-tight text-lg mb-1">{task.title}</h4>
+                      <p className="text-slate-400 group-hover:text-slate-300 text-sm font-medium line-clamp-1">{task.description}</p>
+                      <div className="mt-3 flex items-center space-x-3">
+                         <div className="px-3 py-1 bg-amber-50 group-hover:bg-amber-500 group-hover:text-white rounded-lg text-amber-600 text-[10px] font-black uppercase tracking-widest transition-colors">
+                            REWARD: {task.points_max} PTS
+                         </div>
+                         <div className="px-3 py-1 bg-indigo-50 group-hover:bg-indigo-500 group-hover:text-white rounded-lg text-indigo-600 text-[10px] font-black uppercase tracking-widest transition-colors">
+                            {task.task_type}
+                         </div>
                       </div>
                     </div>
-                    <Link 
-                      href={`/dashboard/tasks/${task.id}`}
-                      className="bg-slate-900 hover:bg-black text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-slate-900/10 transition-all flex items-center"
-                    >
-                      Process <ChevronRight className="w-4 h-4 ml-2" />
-                    </Link>
                   </div>
+                  <Link 
+                    href={`/dashboard/tasks/${task.id}`}
+                    className="md:w-32 py-4 bg-slate-900 text-white group-hover:bg-white group-hover:text-slate-900 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95"
+                  >
+                    START WORK
+                  </Link>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right Sidebar */}
+        {/* Right Rail: Community & Stats */}
         <div className="space-y-8">
-          {/* Referral Card */}
-          <div className="p-8 bg-gradient-to-br from-indigo-600 via-primary-600 to-primary-700 rounded-3xl text-white shadow-xl shadow-primary-500/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-10 translate-x-1/2 -translate-y-1/2 bg-white/10 rounded-full w-40 h-40 blur-2xl" />
-            
-            <div className="flex items-center justify-between mb-8 relative z-10">
-              <h3 className="font-black text-2xl uppercase tracking-tighter">Refer & Earn</h3>
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
+           {/* High Impact Stats Card */}
+           <div className="premium-card !p-8 border-none bg-slate-900 text-white shadow-2xl shadow-slate-200">
+              <div className="flex items-center space-x-3 mb-8">
+                 <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                 </div>
+                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Total Career Earnings</span>
               </div>
-            </div>
-            
-            <p className="text-white/80 font-medium mb-8 leading-relaxed relative z-10">
-              Earn an extra <span className="text-white font-bold">500 points</span> for every friend who joins Earnix with your code!
-            </p>
-            
-            <div className="bg-black/10 backdrop-blur-md rounded-2xl p-5 mb-8 border border-white/5 relative z-10">
-              <p className="text-[10px] uppercase font-black tracking-widest text-white/50 mb-2">My Exclusive Code</p>
-              <p className="font-mono font-black text-3xl tracking-widest">{user.referral_code?.toUpperCase()}</p>
-            </div>
-            
-            <button className="w-full bg-white text-primary-700 font-black py-4 rounded-2xl hover:bg-slate-50 transition-all shadow-lg shadow-black/10 relative z-10">
-              INVITE FRIENDS
-            </button>
-          </div>
+              <p className="text-4xl font-black mb-2 tracking-tighter">{formatPoints(wallet.total_earned)}</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-10">Earnings Velocity: HIGH</p>
+              
+              <div className="space-y-6 mb-8">
+                 <div className="flex items-center justify-between text-xs py-4 border-t border-white/5">
+                    <span className="text-slate-400 font-bold uppercase tracking-widest">Global Rank</span>
+                    <span className="font-black text-indigo-400">#1,204</span>
+                 </div>
+                 <div className="flex items-center justify-between text-xs py-4 border-t border-white/5">
+                    <span className="text-slate-400 font-bold uppercase tracking-widest">Active Referrals</span>
+                    <span className="font-black text-secondary">08 QUALIFIED</span>
+                 </div>
+              </div>
+           </div>
 
-          {/* Activity Feed */}
-          <div className="card overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800">Referral Network</h3>
-              <Link href="/dashboard/referrals" className="text-xs text-primary-600 font-bold uppercase hover:underline">Manage</Link>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {mockReferrals.map((ref) => (
-                <div key={ref.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500 border-2 border-white shadow-sm">
-                      {getInitials(ref.referred_name)}
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800 text-sm">{ref.referred_name}</p>
-                      <p className="text-[10px] text-gray-400 font-medium">{formatDateTime(ref.created_at)}</p>
-                    </div>
-                  </div>
-                  <span className={cn(
-                    'text-[10px] font-black px-3 py-1.5 rounded-lg border uppercase tracking-widest',
-                    ref.status === 'qualified' 
-                      ? 'bg-green-50 text-green-700 border-green-100' 
-                      : 'bg-amber-50 text-amber-700 border-amber-100'
-                  )}>
-                    {ref.status === 'qualified' ? `+${ref.reward_points} pts` : 'In Progress'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+           {/* Referral Action */}
+           <div className="premium-card !p-10 !bg-secondary-50 border-secondary-100/50">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8">
+                 <Users className="w-8 h-8 text-secondary" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter">Refer & Scale</h3>
+              <p className="text-slate-500 font-medium text-sm mb-8 leading-relaxed">
+                 Scale your earnings exponentially by inviting your network. You get <span className="text-secondary font-black">500 PTS</span> for every successful approval.
+              </p>
+              
+              <div className="p-5 bg-white rounded-2xl border border-secondary-200 mb-8 border-dashed">
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">My Code:</p>
+                 <p className="text-2xl font-black text-slate-900 tracking-[0.2em]">{user.referral_code?.toUpperCase()}</p>
+              </div>
+              
+              <button className="btn-premium !bg-secondary !shadow-secondary/20 w-full py-5 text-sm">
+                 COPY INVITE LINK
+              </button>
+           </div>
 
-          {/* Support Widget */}
-          <div className="card p-6 bg-slate-50 border-2 border-dashed border-slate-200 flex items-center space-x-4">
-             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                <Settings className="w-6 h-6 text-slate-400" />
-             </div>
-             <div>
-                <p className="text-sm font-bold text-slate-800">Support Center</p>
-                <p className="text-xs text-slate-500">Need help? We're available 24/7</p>
-             </div>
-          </div>
+           {/* Support widget */}
+           <div className="p-8 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                 <Settings className="w-6 h-6 text-slate-400" />
+              </div>
+              <h4 className="font-black text-slate-900 text-sm uppercase tracking-widest mb-2">Support Protocol</h4>
+              <p className="text-xs text-slate-400 font-medium">Verified support response within 12 hours.</p>
+           </div>
         </div>
       </div>
     </div>

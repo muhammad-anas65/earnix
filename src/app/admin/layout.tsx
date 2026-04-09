@@ -120,27 +120,27 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen bg-[#F1F5F9] flex overflow-x-hidden">
       {/* Sidebar - Desktop */}
       <aside className={cn(
-        'bg-gray-900 text-white fixed left-0 top-0 h-full z-40 transition-all duration-300 hidden lg:block',
-        sidebarOpen ? 'w-72' : 'w-20'
+        'bg-[#0F172A] text-white fixed left-0 top-0 h-full z-40 transition-all duration-300 hidden lg:flex flex-col shadow-2xl',
+        sidebarOpen ? 'w-80' : 'w-24'
       )}>
-        <div className="p-6 border-b border-gray-800">
-          <Link href="/admin" className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-9 h-9 text-white" />
+        <div className="p-8 border-b border-slate-800/50 flex items-center justify-between">
+          <Link href="/admin" className="flex items-center space-x-3 overflow-hidden">
+            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 flex-shrink-0">
+              <TrendingUp className="w-7 h-7 text-white" />
             </div>
             {sidebarOpen && (
-              <div>
-                <span className="text-xl font-bold">Earnix</span>
-                <p className="text-xs text-gray-400">Admin Panel</p>
+              <div className="whitespace-nowrap transition-all duration-300">
+                <span className="text-xl font-black tracking-tight block">Earnix</span>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Management</p>
               </div>
             )}
           </Link>
         </div>
         
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 p-4 mt-6 space-y-1.5 overflow-y-auto hide-scrollbar">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -148,132 +148,114 @@ export default function AdminLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center px-5 py-4 rounded-xl transition-all',
+                  'flex items-center px-5 py-4 rounded-2xl transition-all duration-200 group relative',
                   isActive 
-                    ? 'bg-primary-600 text-white' 
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
+                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
                 )}
               >
-                <item.icon className="w-8 h-8 shrink-0" />
-                {sidebarOpen && <span className="ml-4 font-medium">{item.name}</span>}
+                <item.icon className={cn("w-6 h-6 shrink-0 transition-colors", isActive ? "text-white" : "text-slate-500 group-hover:text-slate-300")} />
+                {sidebarOpen && <span className="ml-4 font-bold text-sm tracking-tight">{item.name}</span>}
+                {!sidebarOpen && isActive && <div className="absolute right-0 w-1.5 h-6 bg-indigo-500 rounded-l-full"></div>}
               </Link>
             );
           })}
         </nav>
         
-        <div className="absolute bottom-6 left-4 right-4">
+        <div className="p-6 border-t border-slate-800/50">
           <button 
             onClick={handleLogout}
-            className="flex items-center w-full px-5 py-4 text-gray-400 hover:bg-gray-800 hover:text-white rounded-xl transition-all"
+            className="flex items-center w-full px-5 py-4 text-slate-500 hover:bg-red-500/10 hover:text-red-400 rounded-2xl transition-all font-bold text-sm"
           >
-            <LogOut className="w-8 h-8 shrink-0" />
-            {sidebarOpen && <span className="ml-4 font-medium">Logout</span>}
+            <LogOut className="w-6 h-6 shrink-0" />
+            {sidebarOpen && <span className="ml-4">Logout</span>}
           </button>
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-900 text-white z-40">
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center space-x-3">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-gray-800 rounded-lg"
-            >
-              {sidebarOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-            </button>
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-9 h-9" />
-              </div>
-              <span className="font-bold">Earnix Admin</span>
-            </div>
-          </div>
-          <div className="relative">
-            <Bell className="w-8 h-8" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">3</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-50" onClick={() => setSidebarOpen(false)}>
-          <div className="bg-gray-900 w-72 h-full" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-800">
-              <div className="flex items-center space-x-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <span className="text-xl font-bold">Earnix</span>
-              </div>
-            </div>
-            <nav className="p-4 space-y-1">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      'flex items-center px-5 py-4 rounded-xl transition-all',
-                      isActive 
-                        ? 'bg-primary-600 text-white' 
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                    )}
-                  >
-                    <item.icon className="w-8 h-8 shrink-0" />
-                    <span className="ml-4 font-medium">{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className={cn('flex-1 transition-all duration-300', sidebarOpen ? 'lg:ml-72' : 'lg:ml-20')}>
-        {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-5">
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:block relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search users, transactions..."
-                  className="w-96 pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
+      {/* Main Area */}
+      <main className={cn('flex-1 flex flex-col min-h-screen transition-all duration-300', sidebarOpen ? 'lg:ml-80' : 'lg:ml-24')}>
+        {/* Top Header */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-6 lg:px-12 py-5">
+          <div className="flex items-center justify-between mx-auto w-full">
+            <div className="flex items-center space-x-6">
+               <button 
+                 onClick={() => setSidebarOpen(!sidebarOpen)}
+                 className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl transition-all shadow-sm"
+               >
+                 <Menu className="w-5 h-5" />
+               </button>
+               
+               <div className="hidden md:flex items-center relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <input 
+                    type="text" 
+                    placeholder="Search anything..." 
+                    className="pl-12 pr-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white w-80 transition-all font-medium"
+                  />
+               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <button className="relative p-3 hover:bg-gray-100 rounded-xl">
-                <Bell className="w-6 h-6 text-gray-600" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              
-              <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-lg">
-                  {getInitials(adminData?.name || 'Admin')}
-                </div>
-                <div className="hidden sm:block">
-                  <p className="font-semibold text-gray-900">{adminData?.name || 'Admin'}</p>
-                  <p className="text-xs text-gray-500">{adminData?.email || 'admin@earnix.com'}</p>
-                </div>
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              </div>
+               <div className="hidden sm:flex flex-col text-right mr-4 border-r border-slate-100 pr-6">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Administrator</span>
+                  <span className="text-sm font-black text-slate-900">{adminData?.name}</span>
+               </div>
+               
+               <button className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-3 right-3 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
+               </button>
+               
+               <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black shadow-xl ring-4 ring-slate-100">
+                  {getInitials(adminData?.name || 'AD')}
+               </div>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
-        <div className="p-6 lg:p-10 mt-14 lg:mt-0">
-          {children}
+        {/* Dynamic Content */}
+        <div className="p-6 lg:p-12 max-w-[1600px] w-full mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
+           {children}
         </div>
       </main>
+      
+      {/* Mobile Drawer (Same component logic as before but better UI) */}
+      {!sidebarOpen && (
+        <button 
+          onClick={() => setSidebarOpen(true)}
+          className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl z-50 flex items-center justify-center active:scale-95 transition-all"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      )}
+
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50" onClick={() => setSidebarOpen(false)}>
+          <div className="bg-[#0F172A] w-72 h-full shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="p-8 border-b border-slate-800/50 flex items-center justify-between">
+              <span className="text-2xl font-black text-white">Earnix</span>
+              <button onClick={() => setSidebarOpen(false)} className="p-2 text-slate-400 hover:text-white"><X className="w-6 h-6" /></button>
+            </div>
+            <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+               {navigation.map((item) => (
+                 <Link
+                   key={item.name}
+                   href={item.href}
+                   onClick={() => setSidebarOpen(false)}
+                   className={cn(
+                     'flex items-center px-5 py-4 rounded-xl transition-all font-bold',
+                     pathname === item.href ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400'
+                   )}
+                 >
+                   <item.icon className="w-6 h-6 mr-4" />
+                   <span className="text-sm">{item.name}</span>
+                 </Link>
+               ))}
+            </nav>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,7 +18,8 @@ import {
   Lock,
   Gift,
   CreditCard,
-  Check
+  Check,
+  Zap
 } from 'lucide-react';
 import { cn, DEFAULT_PLANS } from '@/lib/utils';
 import { useAppStore } from '@/lib/store';
@@ -129,102 +130,98 @@ function SignupContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="container-custom py-5">
-          <div className="flex items-center justify-between">
-            <button onClick={() => step === 'details' ? setStep('plan') : router.push('/')} className="flex items-center text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              {step === 'details' ? 'Back' : 'Home'}
-            </button>
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-gradient">Earnix</span>
-            </Link>
-            <div className="w-24" />
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Premium Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 nav-blur">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between h-24">
+          <button onClick={() => step === 'details' ? setStep('plan') : router.push('/')} className="flex items-center text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-3" />
+            {step === 'details' ? 'Back' : 'Abort'}
+          </button>
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-black text-slate-900 tracking-tight">Earnix</span>
+          </Link>
+          <div className="w-24 hidden md:block" />
         </div>
       </header>
 
-      <div className="container-custom py-12">
-        <div className="max-w-5xl mx-auto">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center mb-12">
-            <div className="flex items-center">
-              <div className={cn(
-                'w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg',
-                step === 'plan' ? 'bg-primary-600 text-white' : 'bg-green-500 text-white'
-              )}>
-                {step === 'details' ? <Check className="w-6 h-6" /> : '1'}
-              </div>
-              <div className="w-32 h-1 bg-gray-200 mx-4">
-                <div className={cn('h-full bg-primary-600 transition-all', step === 'details' ? 'w-full' : 'w-0')} />
-              </div>
-              <div className={cn(
-                'w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg',
-                step === 'details' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
-              )}>
-                2
-              </div>
-            </div>
+      <div className="pt-32 pb-24 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          {/* Elite Progress Indicator */}
+          <div className="flex flex-col items-center mb-20">
+             <div className="flex items-center mb-6">
+                <div className={cn(
+                  'w-14 h-14 rounded-2xl flex items-center justify-center font-black text-sm tracking-widest transition-all duration-500',
+                  step === 'plan' ? 'bg-slate-900 text-white shadow-2xl scale-110' : 'bg-green-500 text-white'
+                )}>
+                  {step === 'details' ? <Check className="w-6 h-6" /> : '01'}
+                </div>
+                <div className="w-24 lg:w-48 h-1 bg-slate-100 mx-4 overflow-hidden rounded-full">
+                  <div className={cn('h-full bg-slate-900 transition-all duration-1000', step === 'details' ? 'w-full' : 'w-0')} />
+                </div>
+                <div className={cn(
+                  'w-14 h-14 rounded-2xl flex items-center justify-center font-black text-sm tracking-widest transition-all duration-500',
+                  step === 'details' ? 'bg-slate-900 text-white shadow-2xl scale-110' : 'bg-slate-50 text-slate-300 border border-slate-100'
+                )}>
+                  02
+                </div>
+             </div>
+             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+               {step === 'plan' ? 'Phase: Intelligence Selection' : 'Phase: Identity Verification'}
+             </p>
           </div>
 
           {/* Plan Selection Step */}
           {step === 'plan' && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 mb-3">Choose Your Plan</h1>
-                <p className="text-lg text-gray-600">Select a plan that best fits your earning goals</p>
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="text-center mb-20">
+                <h1 className="text-4xl lg:text-7xl font-black text-slate-900 mb-6 tracking-tighter">Choose Your <span className="text-gradient">Velocity.</span></h1>
+                <p className="text-lg text-slate-500 font-medium max-w-2xl mx-auto">Select the operational tier that matches your monthly growth objectives.</p>
               </div>
               
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {DEFAULT_PLANS.map((plan) => (
                   <div
                     key={plan.id}
                     onClick={() => selectPlan(plan)}
-                    className={cn(
-                      'card-hover p-8 cursor-pointer relative text-center',
-                      selectedPlan?.id === plan.id && 'ring-4 ring-primary-500'
-                    )}
+                    className="premium-card cursor-pointer !p-10 group hover:bg-slate-900 hover:text-white transition-all duration-500 relative"
                   >
                     {plan.is_popular && (
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-gradient-primary text-white text-sm font-bold px-4 py-1 rounded-full">
-                          Most Popular
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span className="bg-indigo-600 text-white text-[10px] font-black px-6 py-2 rounded-full shadow-xl uppercase tracking-widest">
+                          Elite Choice
                         </span>
                       </div>
                     )}
                     
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{plan.display_name}</h3>
-                    <div className="mb-6">
-                      <span className="text-4xl font-bold text-gray-900">
-                        {plan.price === 0 ? 'Free' : `PKR ${plan.price}`}
+                    <h3 className="text-xl font-black mb-6 uppercase tracking-tight">{plan.display_name}</h3>
+                    <div className="mb-8">
+                      <span className="text-4xl font-black">
+                        {plan.price === 0 ? 'Free' : `₨ ${plan.price.toLocaleString()}`}
                       </span>
                     </div>
                     
-                    <ul className="space-y-3 text-left">
-                      <li className="flex items-center text-gray-600">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        {plan.daily_task_limit} tasks/day
+                    <ul className="space-y-4 mb-10 text-slate-500 group-hover:text-slate-400 transition-colors">
+                      <li className="flex items-center text-sm font-bold">
+                        <CheckCircle className="w-5 h-5 text-indigo-500 mr-4" />
+                        {plan.daily_task_limit} daily units
                       </li>
-                      <li className="flex items-center text-gray-600">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        {plan.min_points_per_task}-{plan.max_points_per_task} pts/task
+                      <li className="flex items-center text-sm font-bold">
+                        <CheckCircle className="w-5 h-5 text-indigo-500 mr-4" />
+                        Up to {plan.max_points_per_task} pts/unit
                       </li>
-                      <li className="flex items-center text-gray-600">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        Referral: {plan.referral_reward} pts
+                      <li className="flex items-center text-sm font-bold">
+                        <CheckCircle className="w-5 h-5 text-indigo-500 mr-4" />
+                        {plan.referral_reward} pts Referral
                       </li>
-                      {plan.bonus_points > 0 && (
-                        <li className="flex items-center text-secondary-600">
-                          <Gift className="w-5 h-5 mr-3 flex-shrink-0" />
-                          Bonus: {plan.bonus_points_max ? `${plan.bonus_points}-${plan.bonus_points_max}` : plan.bonus_points} pts
-                        </li>
-                      )}
                     </ul>
+                    
+                    <div className="w-full py-4 text-center text-[10px] font-black uppercase tracking-[0.2em] border border-slate-100 group-hover:border-white/10 rounded-2xl transition-all">
+                       Select Configuration
+                    </div>
                   </div>
                 ))}
               </div>
@@ -233,212 +230,140 @@ function SignupContent() {
 
           {/* Details Step */}
           {step === 'details' && selectedPlan && (
-            <div className="animate-fade-in">
-              {/* Selected Plan Summary */}
-              <div className="card bg-gradient-to-r from-primary-50 to-secondary-50 p-8 mb-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 font-medium">Selected Plan</p>
-                    <h3 className="text-3xl font-bold text-gray-900">{selectedPlan.display_name}</h3>
-                    <p className="text-gray-600">
-                      {selectedPlan.price === 0 ? 'Free Plan - No payment required' : `PKR ${selectedPlan.price} - Payment required after signup`}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => setStep('plan')}
-                    className="text-primary-600 hover:text-primary-700 font-semibold"
-                  >
-                    Change Plan
-                  </button>
-                </div>
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-3xl mx-auto">
+              {/* Selected Plan Summary High Density */}
+              <div className="premium-card !p-8 !bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                 <div className="flex items-center space-x-6">
+                    <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
+                       <Zap className="w-8 h-8 text-primary-400" />
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">SELECTED CONFIGURATION</p>
+                       <h3 className="text-3xl font-black tracking-tight">{selectedPlan.display_name}</h3>
+                    </div>
+                 </div>
+                 <button 
+                   onClick={() => setStep('plan')}
+                   className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                 >
+                   Reconfigure
+                 </button>
               </div>
 
-              <div className="card p-10">
-                <h2 className="text-3xl font-bold text-gray-900 mb-8">Create Your Account</h2>
+              <div className="premium-card !p-10 lg:!p-16">
+                <h2 className="text-3xl lg:text-5xl font-black text-slate-900 mb-12 tracking-tighter">Enter the Ecosystem</h2>
                 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Name */}
-                  <div>
-                    <label className="label text-lg font-medium">Full Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
-                      <input
-                        {...register('name')}
-                        type="text"
-                        className={cn('input pl-14 py-4 text-lg', errors.name && 'input-error')}
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    {errors.name && (
-                      <p className="text-red-500 text-sm mt-2 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+                  <div className="grid md:grid-cols-2 gap-8">
+                     {/* Name */}
+                     <div className="space-y-4">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Legal Name</label>
+                       <div className="relative">
+                         <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                         <input
+                           {...register('name')}
+                           type="text"
+                           className={cn('w-full pl-16 pr-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all', errors.name && 'border-red-500 ring-red-50')}
+                           placeholder="Full Name"
+                         />
+                       </div>
+                     </div>
 
-                  {/* Email */}
-                  <div>
-                    <label className="label text-lg font-medium">Email Address</label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
-                      <input
-                        {...register('email')}
-                        type="email"
-                        className={cn('input pl-14 py-4 text-lg', errors.email && 'input-error')}
-                        placeholder="Enter your email"
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-2 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        {errors.email.message}
-                      </p>
-                    )}
+                     {/* Email */}
+                     <div className="space-y-4">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Communication Channel</label>
+                       <div className="relative">
+                         <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                         <input
+                           {...register('email')}
+                           type="email"
+                           className={cn('w-full pl-16 pr-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all', errors.email && 'border-red-500 ring-red-50')}
+                           placeholder="your@email.com"
+                         />
+                       </div>
+                     </div>
                   </div>
 
                   {/* Phone */}
-                  <div>
-                    <label className="label text-lg font-medium">Phone Number</label>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identity Linked Phone</label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
                         {...register('phone')}
                         type="tel"
-                        className={cn('input pl-14 py-4 text-lg', errors.phone && 'input-error')}
+                        className={cn('w-full pl-16 pr-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all', errors.phone && 'border-red-500 ring-red-50')}
                         placeholder="03XX-XXXXXXX"
                       />
                     </div>
-                    {errors.phone && (
-                      <p className="text-red-500 text-sm mt-2 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        {errors.phone.message}
-                      </p>
-                    )}
                   </div>
 
-                  {/* Password */}
-                  <div>
-                    <label className="label text-lg font-medium">Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
-                      <input
-                        {...register('password')}
-                        type={showPassword ? 'text' : 'password'}
-                        className={cn('input pl-14 pr-14 py-4 text-lg', errors.password && 'input-error')}
-                        placeholder="Create a strong password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
-                      </button>
-                    </div>
-                    
-                    {password && (
-                      <div className="mt-4 space-y-2">
-                        {passwordRequirements.map((req, index) => (
-                          <div 
-                            key={index} 
-                            className={cn(
-                              'flex items-center text-sm',
-                              req.test(password) ? 'text-green-600' : 'text-gray-400'
-                            )}
-                          >
-                            {req.test(password) ? (
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                            ) : (
-                              <XCircle className="w-4 h-4 mr-2" />
-                            )}
-                            {req.label}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {errors.password && (
-                      <p className="text-red-500 text-sm mt-2 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        {errors.password.message}
-                      </p>
-                    )}
-                  </div>
+                  <div className="grid md:grid-cols-2 gap-8">
+                     {/* Password */}
+                     <div className="space-y-4">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Key</label>
+                       <div className="relative">
+                         <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                         <input
+                           {...register('password')}
+                           type={showPassword ? 'text' : 'password'}
+                           className={cn('w-full pl-16 pr-14 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all', errors.password && 'border-red-500 ring-red-50')}
+                           placeholder="Secure Passphrase"
+                         />
+                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400">
+                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                         </button>
+                       </div>
+                     </div>
 
-                  {/* Confirm Password */}
-                  <div>
-                    <label className="label text-lg font-medium">Confirm Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
-                      <input
-                        {...register('confirmPassword')}
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        className={cn('input pl-14 pr-14 py-4 text-lg', errors.confirmPassword && 'input-error')}
-                        placeholder="Confirm your password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
-                      </button>
-                    </div>
-                    {errors.confirmPassword && (
-                      <p className="text-red-500 text-sm mt-2 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        {errors.confirmPassword.message}
-                      </p>
-                    )}
+                     {/* Confirm Password */}
+                     <div className="space-y-4">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Verification</label>
+                       <div className="relative">
+                         <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                         <input
+                           {...register('confirmPassword')}
+                           type={showConfirmPassword ? 'text' : 'password'}
+                           className={cn('w-full pl-16 pr-14 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all', errors.confirmPassword && 'border-red-500 ring-red-50')}
+                           placeholder="Repeat Key"
+                         />
+                         <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400">
+                           {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                         </button>
+                       </div>
+                     </div>
                   </div>
 
                   {/* Referral Code */}
-                  <div>
-                    <label className="label text-lg font-medium">Referral Code (Optional)</label>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Affiliate Node (Optional)</label>
                     <div className="relative">
-                      <Gift className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                      <Gift className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
                         {...register('referralCode')}
                         type="text"
-                        className="input pl-14 py-4 text-lg"
-                        placeholder="Enter referral code if you have one"
+                        className="w-full pl-16 pr-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all"
+                        placeholder="REFERRAL-001"
                       />
                     </div>
                   </div>
 
-                  {/* Terms */}
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      className="mt-1 mr-3 w-5 h-5"
-                      required
-                    />
-                    <label htmlFor="terms" className="text-base text-gray-600">
-                      I agree to the{' '}
-                      <Link href="/terms" className="text-primary-600 hover:underline font-medium">Terms of Service</Link>
-                      {' '}and{' '}
-                      <Link href="/privacy" className="text-primary-600 hover:underline font-medium">Privacy Policy</Link>
-                    </label>
+                  <div className="pt-6">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={cn(
+                        'w-full py-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-2xl active:scale-[0.98]',
+                        isLoading ? 'bg-slate-200 text-slate-400' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
+                      )}
+                    >
+                      {isLoading ? 'INITIATING RECRUITMENT...' : 'AUTHORIZE ACCOUNT'}
+                    </button>
+                    <p className="text-center text-slate-400 font-bold text-xs mt-10 uppercase tracking-widest">
+                       Already an authorized partner? <Link href="/login" className="text-indigo-600 hover:underline">Sign In Now</Link>
+                    </p>
                   </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full btn-primary py-5 text-lg"
-                  >
-                    {isLoading ? 'Creating Account...' : 'Create Account'}
-                  </button>
                 </form>
-
-                <p className="text-center text-gray-600 mt-8 text-lg">
-                  Already have an account?{' '}
-                  <Link href="/login" className="text-primary-600 hover:underline font-semibold">
-                    Sign In
-                  </Link>
-                </p>
               </div>
             </div>
           )}

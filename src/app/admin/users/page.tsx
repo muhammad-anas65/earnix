@@ -19,73 +19,85 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-10 lg:space-y-16">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Users Management</h1>
-          <p className="text-gray-500 mt-1">Manage and view all registered users across the platform.</p>
+           <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-2 px-1">Network Oversight</p>
+           <h1 className="text-3xl lg:text-6xl font-black text-slate-900 tracking-tighter">Identity Management</h1>
+           <p className="text-slate-500 font-medium mt-2">Scale and monitor all active nodes within the ecosystem.</p>
+        </div>
+        <div className="flex items-center space-x-2 px-6 py-3 bg-slate-900 text-white rounded-2xl shadow-xl">
+           <Zap className="w-5 h-5 text-indigo-400" />
+           <span className="text-[10px] font-black uppercase tracking-widest leading-none">Total Nodes: {users?.length || 0}</span>
         </div>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="premium-card !p-0 overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.06)]">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-500">
-            <thead className="bg-gray-50 text-xs text-gray-700 uppercase font-semibold border-b border-gray-100">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead className="bg-slate-50/50 border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4">User</th>
-                <th className="px-6 py-4">Contact</th>
-                <th className="px-6 py-4">Plan / Status</th>
-                <th className="px-6 py-4">Wallet Income</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Network Entity</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Communication Channel</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status / Tier</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Yield Performance</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Operations</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {users?.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
-                    No users found in database.
-                  </td>
+                   <td colSpan={5} className="py-32 text-center">
+                     <div className="flex flex-col items-center">
+                        <Users className="w-16 h-16 text-slate-200 mb-6" />
+                        <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">Database Static</h4>
+                        <p className="text-slate-400 font-medium mt-1">No registered entities detected in current cycle.</p>
+                     </div>
+                   </td>
                 </tr>
-              ) : null}
-              {users?.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white font-bold">
+              ) : users?.map((user) => (
+                <tr key={user.id} className="hover:bg-slate-50/80 transition-all group">
+                  <td className="px-8 py-8">
+                    <div className="flex items-center space-x-5">
+                      <div className="w-16 h-16 bg-slate-100 border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 font-black text-xl group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-all duration-500 shadow-sm">
                         {user.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{user.name}</p>
-                        <p className="text-xs text-gray-400">Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+                        <p className="font-black text-slate-900 text-lg tracking-tight group-hover:text-indigo-600 transition-colors">{user.name}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">INITIATED: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center text-gray-700 mb-1">
-                      <Mail className="w-4 h-4 mr-2 text-gray-400" /> {user.email}
-                    </div>
-                    <div className="flex items-center text-gray-700">
-                      <Phone className="w-4 h-4 mr-2 text-gray-400" /> {user.phone || 'No phone'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn('px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 inline-block', 
-                      user.status === 'active' ? 'bg-green-100 text-green-700' : 
-                      user.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                      'bg-red-100 text-red-700'
-                    )}>
-                      {user.status}
-                    </span>
-                    <div className="flex items-center font-bold text-gray-900">
-                      <Star className="w-4 h-4 mr-1 text-primary-500" />
-                      {user.plan?.display_name || 'Free Plan'}
+                  <td className="px-8 py-8">
+                    <div className="space-y-3">
+                       <div className="flex items-center text-sm font-bold text-slate-500">
+                          <Mail className="w-4 h-4 mr-3 text-slate-300" /> {user.email}
+                       </div>
+                       <div className="flex items-center text-sm font-bold text-slate-500">
+                          <Phone className="w-4 h-4 mr-3 text-slate-300" /> {user.phone || 'NO PROTOCOL'}
+                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-gray-900">Rs {user.wallet?.[0]?.available_points || 0}</div>
-                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Total Points</p>
+                  <td className="px-8 py-8">
+                    <div className="flex flex-col items-start space-y-3">
+                       <span className={cn('px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border', 
+                          user.status === 'active' ? 'bg-green-50 text-green-700 border-green-100' : 
+                          user.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
+                          'bg-red-50 text-red-700 border-red-100'
+                       )}>
+                          {user.status}
+                       </span>
+                       <div className="flex items-center text-xs font-black text-slate-900 uppercase tracking-tight">
+                          <Zap className="w-4 h-4 mr-2 text-indigo-500" />
+                          {user.plan?.display_name || 'FREE TIER'}
+                       </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-8 py-8 text-right">
+                    <div className="text-2xl font-black text-slate-900 tracking-tighter">₨ {(user.wallet?.[0]?.available_points || 0) * 0.1}</div>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{user.wallet?.[0]?.available_points || 0} UNITS</p>
+                  </td>
+                  <td className="px-8 py-8 text-center">
                      <UserActions userId={user.id} userStatus={user.status} />
                   </td>
                 </tr>

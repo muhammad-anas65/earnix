@@ -101,35 +101,31 @@ const stats = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-100">
-        <div className="container-custom">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-7 h-7 text-white" />
+      <nav className="fixed top-0 left-0 right-0 z-50 nav-blur">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="flex items-center justify-between h-24">
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform duration-300">
+                <Zap className="w-7 h-7 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gradient">Earnix</span>
+              <span className="text-2xl font-black text-slate-900 tracking-tight">Earnix</span>
             </Link>
             
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="#how-it-works" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                How It Works
-              </Link>
-              <Link href="#plans" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                Plans
-              </Link>
-              <Link href="#features" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                Features
-              </Link>
+            <div className="hidden lg:flex items-center space-x-10">
+              {['Features', 'How It Works', 'Plans'].map((item) => (
+                <Link key={item} href={`#${item.toLowerCase().replace(/ /g, '-')}`} className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors tracking-tight uppercase">
+                  {item}
+                </Link>
+              ))}
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                Login
+            <div className="flex items-center space-x-6">
+              <Link href="/login" className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-colors uppercase tracking-widest">
+                Sign In
               </Link>
-              <Link href="/signup" className="btn-primary">
+              <Link href="/signup" className="hidden sm:flex px-6 py-3 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
                 Get Started
               </Link>
             </div>
@@ -138,202 +134,148 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-secondary-50" />
-        <div className="absolute top-32 right-10 w-96 h-96 bg-primary-200 rounded-full blur-3xl opacity-30 animate-float" />
-        <div className="absolute bottom-20 left-10 w-80 h-80 bg-secondary-200 rounded-full blur-3xl opacity-30 animate-float" style={{ animationDelay: '2s' }} />
+      <section className="relative pt-48 pb-32 lg:pt-64 lg:pb-48 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl">
+           <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-[120px] opacity-60 animate-float"></div>
+           <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-50 rounded-full blur-[120px] opacity-60 animate-float" style={{ animationDelay: '2s' }}></div>
+        </div>
         
-        <div className="container-custom relative">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center px-5 py-2 bg-primary-100 rounded-full text-primary-700 font-semibold text-sm mb-8">
-              <Star className="w-4 h-4 mr-2" />
-              Trusted by 10,000+ Users Across Pakistan
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              Earn Money by{' '}
-              <span className="text-gradient">Completing Tasks</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto">
-              Join Earnix today and start earning money through simple tasks. 
-              Choose your plan, complete tasks daily, refer friends, and withdraw your earnings.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/signup" className="btn-primary text-lg px-10 py-4 shadow-xl shadow-primary-500/25">
-                Start Earning Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-              <Link href="#how-it-works" className="btn-outline text-lg px-10 py-4">
-                <Play className="w-5 h-5 mr-2" />
-                Learn More
-              </Link>
-            </div>
-            
-            <div className="mt-16 flex items-center justify-center space-x-10 text-sm text-gray-500">
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                No Hidden Fees
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                Instant Payouts
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                24/7 Support
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative text-center">
+          <div className="inline-flex items-center px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-700 text-[10px] font-black uppercase tracking-[0.2em] mb-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <Star className="w-3 h-3 mr-2 fill-current" />
+            Pakistan's #1 Earning Platform
           </div>
-        </div>
-      </section>
+          
+          <h1 className="text-5xl lg:text-8xl font-black text-slate-900 mb-8 leading-[1.1] tracking-tighter animate-in fade-in slide-in-from-bottom-8 duration-700">
+            Earn Money with <span className="text-gradient">Total Freedom.</span>
+          </h1>
+          
+          <p className="text-lg lg:text-2xl text-slate-500 mb-14 max-w-3xl mx-auto font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-10 duration-1000">
+            Join thousands of users earning daily through simple verified tasks. 
+            No complex skills required. Just your computer or phone and a few minutes a day.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+            <Link href="/signup" className="btn-premium w-full sm:w-auto">
+              Start Earning Today <ArrowRight className="w-5 h-5 ml-3" />
+            </Link>
+            <Link href="#how-it-works" className="btn-ghost w-full sm:w-auto">
+              See How It Works
+            </Link>
+          </div>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white border-y border-gray-100">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gradient mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-gray-500 font-medium">{stat.label}</div>
+          <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 max-w-5xl mx-auto border-t border-slate-100 pt-16">
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center group">
+                <p className="text-3xl lg:text-4xl font-black text-slate-900 mb-2 group-hover:scale-110 transition-transform">{stat.value}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="section-padding bg-gray-50">
-        <div className="container-custom">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Start earning in four simple steps. No complicated processes, just straightforward earning opportunities.
-            </p>
+      {/* How It Works - Cards stacked cleanly on mobile */}
+      <section id="how-it-works" className="py-24 lg:py-32 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-20 lg:mb-32">
+            <h2 className="text-3xl lg:text-5xl font-black text-slate-900 mb-6">Four Steps to Success</h2>
+            <p className="text-lg text-slate-500 font-medium leading-relaxed">Everything is designed for simplicity. From signup to payout, we've removed every barrier.</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="card-hover p-8 text-center relative">
-                  <div className="absolute -top-5 -right-5 w-14 h-14 bg-gradient-primary rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {step.number}
-                  </div>
-                  <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <step.icon className="w-10 h-10 text-primary-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                  <p className="text-gray-600">{step.description}</p>
+          <div className="grid lg:grid-cols-4 gap-8">
+            {steps.map((step, i) => (
+              <div key={i} className="premium-card relative group">
+                <div className="absolute top-8 right-8 text-6xl font-black text-slate-50 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">{step.number}</div>
+                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-8 border border-indigo-100 group-hover:scale-110 transition-transform duration-500">
+                  <step.icon className="w-8 h-8 text-indigo-600" />
                 </div>
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-gray-300" />
-                  </div>
-                )}
+                <h3 className="text-xl font-black text-slate-900 mb-4">{step.title}</h3>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed uppercase tracking-tight">{step.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="section-padding bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Why Choose Earnix?</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We provide the best earning experience with features designed for your success.
-            </p>
+      {/* Features - Premium card layout */}
+      <section id="features" className="py-24 lg:py-40 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="flex flex-col lg:flex-row items-end justify-between mb-20 lg:mb-32 gap-8">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl lg:text-6xl font-black text-slate-900 mb-6">Designed for <br/> <span className="text-gradient">Maximum Earnings.</span></h2>
+              <p className="text-lg text-slate-500 font-medium">Earnix combines state-of-the-art security with a clean user experience to give you the platform you deserve.</p>
+            </div>
+            <Link href="/signup" className="group flex items-center text-sm font-black text-indigo-600 uppercase tracking-widest">
+              Join the ecosystem <div className="ml-4 w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all"><ArrowRight className="w-5 h-5"/></div>
+            </Link>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="card-hover p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <feature.icon className="w-8 h-8 text-white" />
+            {features.map((feature, i) => (
+              <div key={i} className="premium-card">
+                <div className="w-16 h-16 bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl flex items-center justify-center mb-8 shadow-xl">
+                  <feature.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-xl font-black text-slate-900 mb-4">{feature.title}</h3>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Plans */}
-      <section id="plans" className="section-padding bg-gray-50">
-        <div className="container-custom">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Select the plan that fits your earning goals. Start free or upgrade for maximum earnings.
-            </p>
+      {/* Pricing - Most critical for mobile conversion */}
+      <section id="plans" className="py-24 lg:py-32 bg-slate-900 text-white rounded-[3rem] lg:rounded-[5rem] mx-4 lg:mx-10 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-full h-full opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500 via-transparent to-transparent"></div>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
+          <div className="text-center max-w-3xl mx-auto mb-20 lg:mb-32">
+            <h2 className="text-3xl lg:text-6xl font-black text-white mb-6">Choose Your Growth</h2>
+            <p className="text-lg text-slate-400 font-medium">Select the plan that matches your ambition. Upgrade anytime to unlock higher limits.</p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {DEFAULT_PLANS.map((plan, index) => (
+            {DEFAULT_PLANS.map((plan) => (
               <div
                 key={plan.id}
                 className={cn(
-                  'card-hover p-8 relative',
-                  plan.is_popular && 'ring-4 ring-primary-500'
+                  'relative p-10 rounded-[2.5rem] border transition-all duration-500 hover:-translate-y-2 group',
+                  plan.is_popular 
+                    ? 'bg-indigo-600 border-indigo-400 shadow-2xl shadow-indigo-500/30' 
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
                 )}
               >
                 {plan.is_popular && (
-                  <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-primary text-white text-sm font-bold px-6 py-2 rounded-full shadow-lg">
-                      Most Popular
-                    </span>
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-5 py-2 bg-white text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-full shadow-xl">
+                    Most Popular
                   </div>
                 )}
                 
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.display_name}</h3>
-                  <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-gray-900">
-                      {plan.price === 0 ? 'Free' : formatCurrency(plan.price)}
-                    </span>
-                  </div>
+                <h3 className="text-xl font-bold mb-6">{plan.display_name}</h3>
+                <div className="mb-8">
+                  <span className="text-4xl lg:text-5xl font-black">
+                    {plan.price === 0 ? 'Free' : `₨ ${plan.price.toLocaleString()}`}
+                  </span>
                 </div>
                 
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-gray-600">{plan.daily_task_limit} tasks per day</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-gray-600">{plan.min_points_per_task}-{plan.max_points_per_task} points per task</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-gray-600">Referral reward: {plan.referral_reward} points</span>
-                  </li>
-                  {plan.bonus_points > 0 && (
-                    <li className="flex items-center">
-                      <Gift className="w-5 h-5 text-secondary-500 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600">
-                        {plan.bonus_points_max 
-                          ? `Welcome bonus: ${plan.bonus_points}-${plan.bonus_points_max} points`
-                          : `Welcome bonus: ${plan.bonus_points} points`
-                        }
-                      </span>
-                    </li>
-                  )}
-                  <li className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-gray-600">Min withdrawal: {formatCurrency(plan.withdrawal_threshold)}</span>
-                  </li>
-                </ul>
+                <div className="space-y-5 mb-10">
+                  <div className="flex items-center text-sm font-medium text-slate-300">
+                    <CheckCircle className="w-5 h-5 text-indigo-400 mr-4" />
+                    {plan.daily_task_limit} daily tasks
+                  </div>
+                  <div className="flex items-center text-sm font-medium text-slate-300">
+                    <CheckCircle className="w-5 h-5 text-indigo-400 mr-4" />
+                    Up to {plan.max_points_per_task} points/task
+                  </div>
+                </div>
                 
                 <Link
                   href={`/signup?plan=${plan.id}`}
                   className={cn(
-                    'w-full btn block text-center',
-                    plan.is_popular ? 'btn-primary' : 'btn-outline'
+                    'w-full py-4 rounded-2xl text-center font-black uppercase tracking-widest text-xs transition-all block',
+                    plan.is_popular 
+                      ? 'bg-white text-indigo-600 shadow-xl' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-500'
                   )}
                 >
                   Get Started
@@ -344,103 +286,101 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="section-padding bg-gradient-to-br from-primary-600 to-secondary-600">
-        <div className="container-custom">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">What Our Users Say</h2>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
-              Join thousands of satisfied users who are earning with Earnix every day.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-white/90 text-lg mb-6 leading-relaxed">{testimonial.text}</p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-primary-300 rounded-full flex items-center justify-center text-primary-900 font-bold text-lg mr-4">
-                    {testimonial.avatar}
+      {/* Testimonials - Glassmorphism */}
+      <section className="py-24 lg:py-40 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="grid lg:grid-cols-3 gap-12 lg:gap-8 items-center">
+            <div className="max-w-lg">
+               <h2 className="text-4xl lg:text-6xl font-black text-slate-900 mb-8 leading-tight">Voices of the <br/> <span className="text-secondary tracking-tighter">Community.</span></h2>
+               <p className="text-lg text-slate-500 font-medium leading-relaxed mb-10">Real users, real earnings. Join Pakistan's fastest growing digital community.</p>
+               <div className="flex -space-x-4 mb-4">
+                  {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-slate-200"></div>)}
+                  <div className="w-12 h-12 rounded-full border-4 border-white bg-indigo-600 flex items-center justify-center text-white text-[10px] font-black">+10k</div>
+               </div>
+               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Global Payout Verified</p>
+            </div>
+            
+            <div className="lg:col-span-2 grid md:grid-cols-2 gap-6 lg:gap-8">
+                {testimonials.map((t, i) => (
+                  <div key={i} className="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 shadow-sm first:lg:mt-12 group hover:bg-white hover:shadow-2xl transition-all duration-500">
+                    <div className="flex mb-6">
+                      {[1,2,3,4,5].map(j => <Star key={j} className="w-4 h-4 text-amber-500 fill-current" />)}
+                    </div>
+                    <p className="text-slate-700 font-medium leading-relaxed mb-8 italic">"{t.text}"</p>
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-lg mr-4">
+                        {t.avatar}
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-900 text-sm tracking-tight">{t.name}</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.location}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-white">{testimonial.name}</div>
-                    <div className="text-sm text-primary-200">{testimonial.location}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="section-padding bg-gray-900">
-        <div className="container-custom text-center">
-          <Gift className="w-20 h-20 text-primary-400 mx-auto mb-8" />
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to Start Earning?</h2>
-          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Join Earnix today and get started on your earning journey. 
-            Sign up now and get bonus points with our welcome offer!
-          </p>
-          <Link href="/signup" className="btn bg-white text-gray-900 hover:bg-gray-100 text-lg px-12 py-5">
-            Create Your Account
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
+      {/* CTA Final */}
+      <section className="py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto px-4 lg:px-12">
+           <div className="bg-gradient-primary rounded-[3rem] p-12 lg:p-32 text-center text-white relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+             <div className="relative z-10">
+                <Gift className="w-20 h-20 mx-auto mb-10 animate-float" />
+                <h2 className="text-4xl lg:text-7xl font-black mb-8 tracking-tighter">Ready to Build Your Passive Income?</h2>
+                <p className="text-lg lg:text-2xl text-indigo-100 mb-14 max-w-3xl mx-auto font-medium">Create your Earnix account in seconds and unlock your first set of tasks immediately.</p>
+                <Link href="/signup" className="inline-flex px-12 py-5 bg-white text-indigo-600 text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover:scale-105 transition-transform">
+                  Get Started Now <ArrowRight className="w-5 h-5 ml-4" />
+                </Link>
+             </div>
+           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800">
-        <div className="container-custom py-16">
-          <div className="grid md:grid-cols-4 gap-12">
-            <div>
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-7 h-7 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-white">Earnix</span>
-              </div>
-              <p className="text-gray-400 leading-relaxed">
-                Your trusted platform for earning money through simple tasks.
-              </p>
+      <footer className="bg-slate-50 py-24 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="grid md:grid-cols-4 gap-16 lg:gap-24">
+            <div className="col-span-2">
+               <Link href="/" className="flex items-center space-x-3 mb-8">
+                 <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                   <Zap className="w-6 h-6 text-white" />
+                 </div>
+                 <span className="text-2xl font-black text-slate-900 tracking-tight">Earnix</span>
+               </Link>
+               <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-sm">
+                 The most trusted digital earning ecosystem in Pakistan. Helping thousands build a better financial future.
+               </p>
             </div>
             
             <div>
-              <h4 className="font-semibold text-white mb-4">Quick Links</h4>
-              <ul className="space-y-3">
-                <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
-                <li><Link href="#how-it-works" className="text-gray-400 hover:text-white transition-colors">How It Works</Link></li>
-                <li><Link href="#plans" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/login" className="text-gray-400 hover:text-white transition-colors">Login</Link></li>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Ecosystem</h4>
+              <ul className="space-y-4">
+                {['Home', 'Features', 'Pricing', 'Legal'].map(item => (
+                  <li key={item}><Link href="#" className="text-sm font-bold text-slate-700 hover:text-indigo-600 transition-colors">{item}</Link></li>
+                ))}
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold text-white mb-4">Legal</h4>
-              <ul className="space-y-3">
-                <li><Link href="/terms" className="text-gray-400 hover:text-white transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/refund" className="text-gray-400 hover:text-white transition-colors">Refund Policy</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-white mb-4">Contact</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li>support@earnix.pk</li>
-                <li>+92 300 1234567</li>
-                <li>Available 24/7</li>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Connect</h4>
+              <ul className="space-y-4">
+                <li className="text-sm font-bold text-slate-700">support@earnix.pk</li>
+                <li className="text-sm font-bold text-slate-700">Lahore, Pakistan</li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500">
-            <p>&copy; {new Date().getFullYear()} Earnix. All rights reserved.</p>
+          <div className="mt-24 pt-12 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">&copy; 2024 Earnix Global Ltd.</p>
+            <div className="flex space-x-8">
+               {['Privacy', 'Terms', 'Security'].map(item => (
+                 <Link key={item} href="#" className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-indigo-600 transition-colors">{item}</Link>
+               ))}
+            </div>
           </div>
         </div>
       </footer>
