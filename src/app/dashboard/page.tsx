@@ -17,7 +17,8 @@ import {
   Menu,
   X,
   Bell as BellIcon,
-  Settings
+  Settings,
+  TrendingUp
 } from 'lucide-react';
 import { cn, formatCurrency, formatPoints, formatDateTime, getInitials, DEFAULT_PLANS } from '@/lib/utils';
 

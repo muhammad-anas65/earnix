@@ -137,7 +137,7 @@ export default function LoginPage() {
                 </div>
                 <span className="ml-3 text-xs font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">Persistence Mode</span>
               </label>
-              <Link href="/forgot-password" weights="bold" className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">
+              <Link href="/forgot-password" className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">
                 Recovery Needed?
               </Link>
             </div>
