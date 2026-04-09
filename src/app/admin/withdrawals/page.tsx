@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic';
 
 import { supabaseAdmin } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 import { 
   Wallet, 
   ArrowUpRight, 

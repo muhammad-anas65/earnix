@@ -36,11 +36,14 @@ export async function POST(
     const { data: user } = await supabaseAdmin.from('users').select('*, plan:plans(*)').eq('id', userId).single();
     if (user) {
       AdminAlertService.send('MEDIUM', 'Rejected Payment Submission', {
-        user: { name: user.name, email: user.email },
+        user: { 
+          name: user.name, 
+          email: user.email,
+          plan: user.plan?.display_name 
+        },
         event: { 
           type: 'rejection', 
-          reason: reason || 'Information verification failed',
-          plan: user.plan?.display_name 
+          reason: reason || 'Information verification failed'
         }
       });
     }
