@@ -40,6 +40,11 @@ export async function POST(
       type: 'approval',
     });
 
+    // Update Auth Metadata so middleware immediately sees the new status
+    await supabaseAdmin.auth.admin.updateUserById(userId, {
+      user_metadata: { status: 'active' }
+    });
+
     return NextResponse.json({ success: true, message: 'User approved successfully' });
 
   } catch (error) {

@@ -33,8 +33,10 @@ export default function AdminDashboardPage() {
       const usersResp = await fetch('/api/admin/users?status=pending');
       const usersResult = await usersResp.json();
       
-      if (usersResult.success) {
+      if (usersResult.success && Array.isArray(usersResult.data)) {
         setPendingApprovals(usersResult.data.slice(0, 5));
+      } else {
+        setPendingApprovals([]);
       }
 
       // In a real app, these would be separate dashboard stats API calls

@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   X,
+  XCircle,
   TrendingUp,
   Bell,
   Search,
@@ -54,6 +55,13 @@ export default function AdminLayout({
 
   useEffect(() => {
     const fetchAdmin = async () => {
+      // Don't fetch if we're on login or register pages
+      if (pathname === '/admin/login' || pathname === '/admin/register') {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
         const res = await fetch('/api/admin/me');
         const result = await res.json();
@@ -62,21 +70,19 @@ export default function AdminLayout({
           setAdminData(result.data);
           setIsAuthenticated(true);
         } else {
-          if (pathname !== '/admin/login' && pathname !== '/admin/register') {
-            router.push('/admin/login');
-          } else {
-            setLoading(false);
-          }
+          setIsAuthenticated(false);
+          router.push('/admin/login');
         }
       } catch (err) {
-        console.error(err);
+        console.error('Admin fetch error:', err);
+        setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }
     };
     
     fetchAdmin();
-  }, [router]);
+  }, [router, pathname]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -99,7 +105,18 @@ export default function AdminLayout({
   }
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-500 mb-6 font-medium">You don't have permission to access the admin area.</p>
+          <Link href="/admin/login" className="btn-primary inline-block w-full">
+            Back to Login
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

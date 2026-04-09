@@ -26,6 +26,11 @@ export async function POST(
       type: 'approval',
     });
 
+    // Update Auth Metadata status
+    await supabaseAdmin.auth.admin.updateUserById(userId, {
+      user_metadata: { status: 'rejected' }
+    });
+
     return NextResponse.json({ success: true, message: 'User rejected successfully' });
 
   } catch (error) {

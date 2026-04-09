@@ -51,8 +51,10 @@ export default function ApprovalsPage() {
     try {
       const resp = await fetch(`/api/admin/users?status=pending&search=${searchQuery}`);
       const result = await resp.json();
-      if (result.success) {
+      if (result.success && Array.isArray(result.data)) {
         setUsers(result.data);
+      } else {
+        setUsers([]);
       }
     } catch (err) {
       console.error(err);

@@ -26,7 +26,7 @@ export default function PendingApprovalPage() {
         if (result.success) {
           if (result.data.user.status === 'active') {
             router.push('/dashboard');
-            return;
+            return true;
           }
           setCreatedAt(result.data.user.created_at);
         }
@@ -35,8 +35,21 @@ export default function PendingApprovalPage() {
       } finally {
         setIsDataLoading(false);
       }
+      return false;
     };
+    
+    // Initial check
     checkStatus();
+
+    // Set up polling every 5 seconds
+    const pollInterval = setInterval(async () => {
+      const isApproved = await checkStatus();
+      if (isApproved) {
+        clearInterval(pollInterval);
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
   }, [router]);
 
   useEffect(() => {

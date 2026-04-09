@@ -18,26 +18,40 @@ export function formatPoints(points: number): string {
   return new Intl.NumberFormat('en-PK').format(points);
 }
 
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-PK', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(date));
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A';
+  try {
+    return new Intl.DateTimeFormat('en-PK', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(date));
+  } catch (e) {
+    return 'Invalid Date';
+  }
 }
 
-export function formatDateTime(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-PK', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(date));
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A';
+  try {
+    return new Intl.DateTimeFormat('en-PK', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(date));
+  } catch (e) {
+    return 'Invalid Date';
+  }
 }
 
-export function timeAgo(date: string | Date): string {
-  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+export function timeAgo(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A';
+  const timestamp = new Date(date).getTime();
+  if (isNaN(timestamp)) return 'Invalid Date';
+  
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
   
   const intervals = [
     { label: 'year', seconds: 31536000 },
@@ -58,7 +72,9 @@ export function timeAgo(date: string | Date): string {
   return 'Just now';
 }
 
-export function getStatusColor(status: string): string {
+export function getStatusColor(status: string | null | undefined): string {
+  if (!status) return 'bg-gray-100 text-gray-800';
+  const s = status.toLowerCase();
   const colors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     active: 'bg-green-100 text-green-800',
@@ -68,13 +84,17 @@ export function getStatusColor(status: string): string {
     paid: 'bg-green-100 text-green-800',
     qualified: 'bg-green-100 text-green-800',
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return colors[s] || 'bg-gray-100 text-gray-800';
 }
 
-export function getInitials(name: string): string {
-  return name
-    .split(' ')
+export function getInitials(name: string | null | undefined): string {
+  if (!name || typeof name !== 'string') return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return 'U';
+  
+  return parts
     .map((n) => n[0])
+    .filter(Boolean)
     .join('')
     .toUpperCase()
     .slice(0, 2);

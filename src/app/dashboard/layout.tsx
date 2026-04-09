@@ -49,6 +49,10 @@ export default function UserDashboardLayout({
         const result = await res.json();
         
         if (result.success) {
+          if (result.data.user.status === 'pending') {
+            router.push('/pending-approval');
+            return;
+          }
           setUserData({
             name: result.data.user.name,
             plan: result.data.user.plan?.display_name || 'Free'
@@ -64,7 +68,7 @@ export default function UserDashboardLayout({
     };
     
     fetchUser();
-  }, [router]);
+  }, [router, pathname]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
