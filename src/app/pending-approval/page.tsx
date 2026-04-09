@@ -1,28 +1,55 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Clock, CheckCircle, CreditCard, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 export default function PendingApprovalPage() {
+  const router = useRouter();
   const { selectedPlan } = useAppStore();
   const [timeLeft, setTimeLeft] = useState({
-    hours: 23,
-    minutes: 59,
-    seconds: 59,
+    hours: 24,
+    minutes: 0,
+    seconds: 0,
   });
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   
   useEffect(() => {
-    const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 24);
+    // Check if user is already active and get creation date
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/users/me');
+        const result = await res.json();
+        if (result.success) {
+          if (result.data.user.status === 'active') {
+            router.push('/dashboard');
+            return;
+          }
+          setCreatedAt(result.data.user.created_at);
+        }
+      } catch (err) {
+        console.error('Error fetching user status:', err);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+    checkStatus();
+  }, [router]);
+
+  useEffect(() => {
+    if (!createdAt) return;
+
+    const creationTime = new Date(createdAt);
+    const endTime = new Date(creationTime.getTime() + 24 * 60 * 60 * 1000); // 24 hours from creation
     
-    const interval = setInterval(() => {
+    const updateTimer = () => {
       const now = new Date();
       const diff = endTime.getTime() - now.getTime();
       
       if (diff <= 0) {
-        clearInterval(interval);
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
         return;
       }
@@ -32,10 +59,13 @@ export default function PendingApprovalPage() {
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
       
       setTimeLeft({ hours, minutes, seconds });
-    }, 1000);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [createdAt]);
   
   const tips = [
     'Make sure your payment proof is clear and readable',
@@ -43,6 +73,14 @@ export default function PendingApprovalPage() {
     'Keep your payment receipt safe',
     'Check your email for updates',
   ];
+
+  if (isDataLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">

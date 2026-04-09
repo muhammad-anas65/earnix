@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Users, 
@@ -20,30 +20,59 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatPoints, formatDateTime } from '@/lib/utils';
 
-const stats = [
-  { title: 'Total Users', value: '10,234', change: 12.5, icon: Users, color: 'bg-blue-500' },
-  { title: 'Active Users', value: '8,456', change: 8.2, icon: Activity, color: 'bg-green-500' },
-  { title: 'Pending Approvals', value: '45', change: -15, icon: Clock, color: 'bg-yellow-500' },
-  { title: 'Total Points Issued', value: '5.2M', change: 18.3, icon: Target, color: 'bg-purple-500' },
-  { title: 'Withdrawals Today', value: '₨ 125,000', change: -5.2, icon: Wallet, color: 'bg-red-500' },
-  { title: 'Revenue (Month)', value: '₨ 2.5M', change: 22.1, icon: DollarSign, color: 'bg-indigo-500' },
-];
-
-const pendingApprovals = [
-  { id: '1', name: 'Ahmed Khan', email: 'ahmed@example.com', plan: 'Premium', payment_status: 'submitted', created_at: '2024-01-20 10:30 AM' },
-  { id: '2', name: 'Fatima Bibi', email: 'fatima@example.com', plan: 'Free', payment_status: 'none', created_at: '2024-01-20 09:15 AM' },
-  { id: '3', name: 'Muhammad Ali', email: 'mali@example.com', plan: 'Ultra', payment_status: 'pending', created_at: '2024-01-20 08:45 AM' },
-  { id: '4', name: 'Ayesha Khan', email: 'ayesha@example.com', plan: 'Premium', payment_status: 'submitted', created_at: '2024-01-19 04:20 PM' },
-];
-
-const recentWithdrawals = [
-  { id: '1', user: 'John Doe', amount: 5000, method: 'easypaisa', status: 'pending', created_at: '2024-01-20 11:30 AM' },
-  { id: '2', user: 'Jane Smith', amount: 3000, method: 'jazzcash', status: 'approved', created_at: '2024-01-20 10:15 AM' },
-  { id: '3', user: 'Bob Wilson', amount: 8000, method: 'easypaisa', status: 'paid', created_at: '2024-01-20 09:00 AM' },
-  { id: '4', user: 'Alice Brown', amount: 2500, method: 'jazzcash', status: 'rejected', created_at: '2024-01-19 05:30 PM' },
-];
-
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<any[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [recentWithdrawals, setRecentWithdrawals] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch users count for stats
+      const usersResp = await fetch('/api/admin/users?status=pending');
+      const usersResult = await usersResp.json();
+      
+      if (usersResult.success) {
+        setPendingApprovals(usersResult.data.slice(0, 5));
+      }
+
+      // In a real app, these would be separate dashboard stats API calls
+      // For now, we use the available APIs or keep some mock for UI demo
+      setStats([
+        { title: 'Total Users', value: '1,240', change: 12.5, icon: Users, color: 'bg-blue-500' },
+        { title: 'Active Users', value: '850', change: 8.2, icon: Activity, color: 'bg-green-500' },
+        { title: 'Pending Approvals', value: usersResult.data?.length || 0, change: 0, icon: Clock, color: 'bg-yellow-500' },
+        { title: 'Total Points Issued', value: '1.2M', change: 18.3, icon: Target, color: 'bg-purple-500' },
+        { title: 'Withdrawals Today', value: '₨ 12,500', change: -5.2, icon: Wallet, color: 'bg-red-500' },
+        { title: 'Revenue (Month)', value: '₨ 250k', change: 22.1, icon: DollarSign, color: 'bg-indigo-500' },
+      ]);
+
+      // Mock withdrawals for now as we don't have a specific list API in snippets
+      setRecentWithdrawals([
+        { id: '1', user: 'John Doe', amount: 5000, method: 'easypaisa', status: 'pending', created_at: '2024-01-20 11:30 AM' },
+        { id: '2', user: 'Jane Smith', amount: 3000, method: 'jazzcash', status: 'approved', created_at: '2024-01-20 10:15 AM' },
+      ]);
+
+    } catch (err) {
+      console.error('Admin dashboard fetch error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-10">
@@ -106,12 +135,14 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {pendingApprovals.map((user) => (
+            {pendingApprovals.length === 0 ? (
+               <div className="p-10 text-center text-gray-500">No pending approvals</div>
+            ) : pendingApprovals.map((user) => (
               <div key={user.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold">
-                      {user.name.split(' ').map(n => n[0]).join('')}
+                      {user.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{user.name}</p>
@@ -119,8 +150,8 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="badge bg-purple-100 text-purple-700 mb-1">{user.plan}</span>
-                    <p className="text-xs text-gray-500">{user.created_at}</p>
+                    <span className="badge bg-purple-100 text-purple-700 mb-1">{user.plan?.display_name || 'Free'}</span>
+                    <p className="text-xs text-gray-500">{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between">

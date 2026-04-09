@@ -6,7 +6,11 @@ import { Mail, Phone, Calendar, Star, MoreVertical } from 'lucide-react';
 export default async function AdminUsersPage() {
   const { data: users, error } = await supabaseAdmin
     .from('users')
-    .select('*, wallets(*), plans(*)');
+    .select(`
+      *,
+      wallet:wallets(*),
+      plan:plans(*)
+    `);
 
   if (error) {
     return <div className="p-10 text-red-500 font-bold">Error loading users. {error.message}</div>;
@@ -50,7 +54,7 @@ export default async function AdminUsersPage() {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{user.name}</p>
-                        <p className="text-xs text-gray-400">Joined: {new Date(user.created_at).toLocaleDateString()}</p>
+                        <p className="text-xs text-gray-400">Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
                       </div>
                     </div>
                   </td>
@@ -75,11 +79,11 @@ export default async function AdminUsersPage() {
                     </span>
                     <p className="text-xs text-gray-500 flex items-center items-center mt-1 font-medium">
                       <Star className="w-3 h-3 mr-1 text-purple-500" /> 
-                      {user.plans?.name || 'Free Plan'}
+                      {user.plan?.display_name || 'Free Plan'}
                     </p>
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900">
-                    ₨ {user.wallets?.[0]?.total_earned || 0}
+                    ₨ {user.wallet?.total_earned || 0}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">

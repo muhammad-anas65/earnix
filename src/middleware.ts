@@ -50,9 +50,23 @@ export async function middleware(request: NextRequest) {
     if (!isAuthUser) {
       return redirectTo('/login');
     }
+
+    const { status } = user.user_metadata;
+
     // Strict block: Admin cannot perform user tasks in user UI by default to avoid mixing
     if (isAdmin && !isAuthUser) {
       return redirectTo('/admin');
+    }
+
+    // Pending User Logic
+    if (status === 'pending') {
+      if (pathname.startsWith('/dashboard')) {
+        return redirectTo('/pending-approval');
+      }
+    } else if (status === 'active') {
+      if (pathname === '/pending-approval' || pathname === '/payment') {
+        return redirectTo('/dashboard');
+      }
     }
   }
 

@@ -32,6 +32,9 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     const supabaseClient = createClient(cookieStore);
 
+    // Temporarily set status for metadata based on plan
+    const initialStatus = planId === 'free' || planId === 'Free Plan' ? 'active' : 'pending';
+
     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
       email,
       password,
@@ -39,6 +42,7 @@ export async function POST(request: NextRequest) {
         data: {
           name,
           phone,
+          status: initialStatus,
         }
       }
     });
@@ -86,6 +90,9 @@ export async function POST(request: NextRequest) {
 
     const userReferralCode = generateReferralCode();
 
+    const isFreePlan = plan.price === 0;
+    const userStatus = isFreePlan ? 'active' : 'pending';
+
     const { data: newUser, error: userError } = await supabaseAdmin
       .from('users')
       .insert({
@@ -93,25 +100,27 @@ export async function POST(request: NextRequest) {
         name,
         email,
         phone,
-        password_hash: '', // Handled by Supabase Auth now
+        password_hash: '', // Handled by Supabase Auth
         plan_id: plan.id,
         referral_code: userReferralCode,
         referred_by: referredById,
-        status: 'pending',
+        status: userStatus,
       })
       .select()
       .single();
 
     if (userError || !newUser) {
+      console.error('User profile insert error:', userError);
       // Rollback Auth user if custom insert fails
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json(
-        { success: false, error: 'Failed to create user profile' },
+        { success: false, error: 'Failed to create user profile: ' + (userError?.message || 'Unknown error') },
         { status: 500 }
       );
     }
 
-    await supabaseAdmin.from('wallets').insert({
+    // Create Wallet
+    const { error: walletError } = await supabaseAdmin.from('wallets').insert({
       user_id: newUser.id,
       available_points: 0,
       pending_points: 0,
@@ -120,15 +129,21 @@ export async function POST(request: NextRequest) {
       total_withdrawn: 0,
     });
 
+    if (walletError) {
+      console.error('Wallet creation error:', walletError);
+      // We don't rollback here yet, but we log it. Ideally we should.
+    }
+
     if (referredById) {
-      await supabaseAdmin.from('referrals').insert({
+      const { error: refError } = await supabaseAdmin.from('referrals').insert({
         referrer_id: referredById,
         referred_id: newUser.id,
         status: 'pending',
         tasks_completed: 0,
         reward_sent: false,
-        reward_points: plan.referral_reward,
+        reward_points: plan.referral_reward || 0,
       });
+      if (refError) console.error('Referral record error:', refError);
     }
 
     return NextResponse.json({
@@ -137,7 +152,7 @@ export async function POST(request: NextRequest) {
         uid: newUser.id,
         email: newUser.email,
         status: newUser.status,
-        needsPayment: plan.price > 0,
+        needsPayment: !isFreePlan,
       },
       message: 'Account created successfully',
     });

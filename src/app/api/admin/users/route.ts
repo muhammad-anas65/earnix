@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('users')
-      .select('*, plan:plans(*)')
+      .select('*, plan:plans(*), payments:payment_submissions(*)')
       .order('created_at', { ascending: false });
 
     if (status && status !== 'all') {

@@ -22,10 +22,19 @@ interface PendingUser {
   name: string;
   email: string;
   phone: string;
-  plan: string;
-  plan_price: number;
-  payment_status: 'none' | 'pending' | 'submitted';
-  transaction_id?: string;
+  plan: {
+    id: string;
+    name: string;
+    display_name: string;
+    price: number;
+  };
+  payments?: {
+    id: string;
+    transaction_id: string;
+    receipt_url: string;
+    status: string;
+    created_at: string;
+  }[];
   referred_by?: string;
   created_at: string;
 }
@@ -155,7 +164,7 @@ export default function ApprovalsPage() {
                   <td className="px-6 py-5">
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold mr-4">
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{user.name}</p>
@@ -164,25 +173,37 @@ export default function ApprovalsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="badge bg-purple-100 text-purple-700">{user.plan}</span>
-                    {user.plan_price > 0 && (
-                      <p className="text-sm text-gray-500 mt-1">{formatCurrency(user.plan_price)}</p>
+                    <span className="badge bg-purple-100 text-purple-700">{user.plan?.display_name || 'N/A'}</span>
+                    {user.plan?.price > 0 && (
+                      <p className="text-sm text-gray-500 mt-1">{formatCurrency(user.plan.price)}</p>
                     )}
                   </td>
                   <td className="px-6 py-5">
-                    {user.plan_price === 0 ? (
+                    {user.plan?.price === 0 ? (
                       <span className="badge bg-gray-100 text-gray-600">Free</span>
                     ) : (
                       <div>
-                        <span className={`badge ${
-                          user.payment_status === 'submitted' 
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {user.payment_status}
-                        </span>
-                        {user.transaction_id && (
-                          <p className="text-xs text-gray-500 mt-1">ID: {user.transaction_id}</p>
+                        {user.payments && user.payments.length > 0 ? (
+                          <>
+                            <span className={`badge ${
+                              user.payments[0].status === 'pending' 
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-green-100 text-green-700'
+                            }`}>
+                              {user.payments[0].status}
+                            </span>
+                            <p className="text-xs text-gray-500 mt-1">ID: {user.payments[0].transaction_id}</p>
+                            <a 
+                              href={user.payments[0].receipt_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary-600 hover:underline flex items-center mt-1"
+                            >
+                              <Eye className="w-3 h-3 mr-1" /> View Receipt
+                            </a>
+                          </>
+                        ) : (
+                          <span className="badge bg-blue-100 text-blue-700">Expecting Payment</span>
                         )}
                       </div>
                     )}
@@ -253,7 +274,7 @@ export default function ApprovalsPage() {
             <div className="p-6 space-y-6">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold text-xl">
-                  {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                  {selectedUser.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">{selectedUser.name}</h3>
@@ -275,9 +296,9 @@ export default function ApprovalsPage() {
                     <CreditCard className="w-4 h-4 text-gray-400 mr-2" />
                     <span className="text-sm text-gray-500">Plan</span>
                   </div>
-                  <p className="font-semibold">{selectedUser.plan}</p>
-                  {selectedUser.plan_price > 0 && (
-                    <p className="text-sm text-gray-500">{formatCurrency(selectedUser.plan_price)}</p>
+                  <p className="font-semibold">{selectedUser.plan?.display_name || 'N/A'}</p>
+                  {selectedUser.plan?.price > 0 && (
+                    <p className="text-sm text-gray-500">{formatCurrency(selectedUser.plan.price)}</p>
                   )}
                 </div>
                 
@@ -298,25 +319,46 @@ export default function ApprovalsPage() {
                 </div>
               </div>
 
-              {selectedUser.plan_price > 0 && (
+              {selectedUser.plan?.price > 0 && (
                 <div className="border-2 border-gray-200 rounded-xl p-4">
                   <h4 className="font-semibold text-gray-900 mb-3">Payment Information</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Transaction ID:</span>
-                      <span className="font-semibold">{selectedUser.transaction_id || 'Pending'}</span>
+                  {selectedUser.payments && selectedUser.payments.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Transaction ID:</span>
+                        <span className="font-semibold">{selectedUser.payments[0].transaction_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Status:</span>
+                        <span className={`badge ${
+                          selectedUser.payments[0].status === 'pending' 
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-green-100 text-green-700'
+                        }`}>
+                          {selectedUser.payments[0].status}
+                        </span>
+                      </div>
+                      <div className="pt-2">
+                        <p className="text-sm text-gray-500 mb-2">Payment Receipt:</p>
+                        <a 
+                          href={selectedUser.payments[0].receipt_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <img 
+                            src={selectedUser.payments[0].receipt_url} 
+                            alt="Receipt" 
+                            className="w-full h-auto rounded-lg border hover:scale-[1.02] transition-transform"
+                          />
+                        </a>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Status:</span>
-                      <span className={`badge ${
-                        selectedUser.payment_status === 'submitted' 
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {selectedUser.payment_status}
-                      </span>
+                  ) : (
+                    <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                      User has not submitted payment proof yet.
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

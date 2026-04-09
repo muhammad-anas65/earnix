@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !user) {
+      console.error('Login: User profile not found for ID:', authData.user.id, 'Error:', error);
       return NextResponse.json(
         { success: false, error: 'User profile not found. Please contact support.' },
         { status: 404 }
