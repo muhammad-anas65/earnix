@@ -15,7 +15,7 @@ import {
   CreditCard,
   Building
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import WithdrawalActions from '@/components/admin/WithdrawalActions';
 
 export default async function AdminWithdrawalsPage() {
