@@ -47,27 +47,34 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [wallet, setWallet] = useState<any>(null);
   const [dailyStats, setDailyStats] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const resp = await fetch('/api/users/me');
+      if (!resp.ok) throw new Error('Failed to fetch user data');
       const result = await resp.json();
+      
       if (result.success) {
         setUser(result.data.user);
         setWallet(result.data.wallet);
         setDailyStats(result.data.dailyStats);
+      } else {
+        throw new Error(result.error || 'Authentication error');
       }
 
       const tasksResp = await fetch('/api/tasks');
       const tasksResult = await tasksResp.json();
       if (tasksResult.success) {
-        setTasks(tasksResult.data.tasks.slice(0, 5)); // Show top 5
+        setTasks(tasksResult.data.tasks?.slice(0, 5) || []);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -77,10 +84,28 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  if (isLoading || !user) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-20">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 text-center">
+        <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+          <X className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+        <p className="text-gray-500 mb-6 max-w-md">{error || "We couldn't load your profile. Please check your connection and try again."}</p>
+        <button 
+          onClick={() => fetchData()}
+          className="bg-primary-600 text-white px-6 py-2 rounded-xl font-bold"
+        >
+          Retry Loading
+        </button>
       </div>
     );
   }

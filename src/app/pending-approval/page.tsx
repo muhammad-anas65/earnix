@@ -41,13 +41,13 @@ export default function PendingApprovalPage() {
     // Initial check
     checkStatus();
 
-    // Set up polling every 5 seconds
+    // Set up polling every 15 seconds
     const pollInterval = setInterval(async () => {
       const isApproved = await checkStatus();
       if (isApproved) {
         clearInterval(pollInterval);
       }
-    }, 5000);
+    }, 15000);
 
     return () => clearInterval(pollInterval);
   }, [router]);
