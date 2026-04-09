@@ -50,15 +50,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: plan } = await supabaseAdmin
-      .from('plans')
-      .select('*')
-      .eq('id', planId)
-      .single();
+    // Refined plan lookup: Detect if planId is a UUID or a Name string
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(planId);
+    
+    let planQuery = supabaseAdmin.from('plans').select('*');
+    if (isUuid) {
+      planQuery = planQuery.eq('id', planId);
+    } else {
+      planQuery = planQuery.eq('name', planId);
+    }
+    
+    const { data: plan, error: planError } = await planQuery.maybeSingle();
 
     if (!plan) {
+      console.error('Plan not found for ID/Name:', planId, planError);
       return NextResponse.json(
-        { success: false, error: 'Invalid plan selected' },
+        { success: false, error: 'Invalid plan selected. Please try again or contact support.' },
         { status: 400 }
       );
     }
@@ -87,7 +94,7 @@ export async function POST(request: NextRequest) {
         email,
         phone,
         password_hash: '', // Handled by Supabase Auth now
-        plan_id: planId,
+        plan_id: plan.id,
         referral_code: userReferralCode,
         referred_by: referredById,
         status: 'pending',

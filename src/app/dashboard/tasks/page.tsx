@@ -3,23 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  TrendingUp,
-  Wallet,
-  Gift,
-  CheckCircle,
-  Clock,
-  ArrowUpRight,
-  ChevronRight,
-  Menu,
-  X,
-  Bell as BellIcon,
   Star,
   Target,
-  Settings,
-  LogOut,
-  LayoutDashboard
+  ChevronRight,
+  TrendingUp,
+  Clock,
+  Zap
 } from 'lucide-react';
-import { cn, formatPoints, formatCurrency } from '@/lib/utils';
+import { cn, formatPoints } from '@/lib/utils';
 
 interface Task {
   id: string;
@@ -30,20 +21,7 @@ interface Task {
   task_type: string;
 }
 
-// Real tasks are fetched from API
-
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', active: true },
-  { icon: Target, label: 'Tasks', href: '/dashboard/tasks', active: false },
-  { icon: Gift, label: 'Referrals', href: '/dashboard/referrals', active: false },
-  { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet', active: false },
-  { icon: TrendingUp, label: 'Withdraw', href: '/dashboard/withdraw', active: false },
-  { icon: BellIcon, label: 'Notifications', href: '/dashboard/notifications', active: false },
-  { icon: Settings, label: 'Settings', href: '/dashboard/settings', active: false },
-];
-
 export default function TasksPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [dailyStats, setDailyStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,9 +47,7 @@ export default function TasksPage() {
   }, []);
 
   if (isLoading || !dailyStats) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-    </div>;
+    return <div className="p-20 text-center animate-pulse font-bold text-slate-400">Syncing available tasks...</div>;
   }
 
   const dailyProgress = { 
@@ -92,132 +68,78 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar - Mobile Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">Available Tasks</h1>
+        <p className="text-gray-500 font-medium">Complete these simple tasks to boost your points balance immediately.</p>
+      </div>
 
-      {/* Sidebar */}
-      <aside className={cn(
-        'lg:hidden fixed left-0 top-0 h-full w-72 bg-white z-50 transform transition-transform',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gradient">Earnix</span>
-          </Link>
-          <button onClick={() => setSidebarOpen(false)}>
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+      {/* Progress Card */}
+      <div className="card p-8 bg-white shadow-sm border border-slate-100 overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-12 translate-x-1/2 -translate-y-1/2 bg-primary-50 rounded-full w-48 h-48 -z-0" />
         
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'flex items-center px-5 py-4 rounded-xl transition-all',
-                item.active 
-                  ? 'bg-primary-50 text-primary-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              )}
-            >
-              <item.icon className="w-6 h-6" />
-              <span className="ml-4 font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-0">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-5">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-                <p className="text-gray-500">Complete tasks and earn points</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="bg-primary-100 text-primary-700 px-4 py-2 rounded-xl font-semibold">
-                {dailyProgress.completed}/{dailyProgress.limit} today
-              </div>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div>
+            <h2 className="text-xl font-black text-slate-800 flex items-center">
+              <Clock className="w-5 h-5 mr-3 text-primary-500" /> Daily Target
+            </h2>
+            <p className="text-gray-500 font-medium mt-1">
+              You've completed <span className="text-primary-600 font-black">{dailyProgress.completed}</span> out of <span className="font-bold text-slate-800">{dailyProgress.limit}</span> tasks today.
+            </p>
           </div>
-        </header>
-
-        {/* Content */}
-        <div className="p-6 lg:p-10">
-          {/* Progress Card */}
-          <div className="card p-8 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Daily Progress</h2>
-                <p className="text-gray-500">{dailyProgress.limit - dailyProgress.completed} tasks remaining today</p>
-              </div>
-              <div className="text-right">
-                <span className="text-3xl font-bold text-primary-600">{formatPoints(dailyProgress.points)}</span>
-                <p className="text-gray-500">points earned today</p>
-              </div>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4">
-              <div 
-                className="bg-gradient-primary h-4 rounded-full transition-all"
-                style={{ width: `${(dailyProgress.completed / dailyProgress.limit) * 100}%` }}
-              />
-            </div>
+          <div className="bg-slate-900 text-white px-8 py-4 rounded-2xl text-center shadow-xl shadow-slate-900/10">
+            <span className="text-2xl font-black block">{formatPoints(dailyProgress.points)}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Earned Today</span>
           </div>
+        </div>
 
-          {/* Tasks List */}
-          <div className="space-y-4">
-            {tasks.map((task) => (
-              <div key={task.id} className="card p-6 hover:shadow-lg transition-all">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-5">
-                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-3xl">
-                      {getTaskIcon(task.task_type)}
+        <div className="mt-8">
+          <div className="w-full bg-slate-100 rounded-full h-4 ring-1 ring-slate-100">
+            <div 
+              className="bg-gradient-to-r from-primary-500 to-indigo-600 h-full rounded-full transition-all duration-1000"
+              style={{ width: `${(dailyProgress.completed / dailyProgress.limit) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Tasks Grid */}
+      <div className="grid gap-6">
+        {tasks.length === 0 ? (
+           <div className="card p-20 text-center">
+              <Zap className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+              <p className="text-slate-500 font-bold">No tasks available right now. Check back later!</p>
+           </div>
+        ) : tasks.map((task) => (
+          <div key={task.id} className="card p-6 hover:shadow-xl hover:-translate-y-1 transition-all border border-transparent hover:border-primary-100 group">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
+                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-4xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                  {getTaskIcon(task.task_type)}
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-2xl tracking-tight">{task.title}</h3>
+                  <p className="text-gray-500 mt-1 font-medium max-w-lg">{task.description}</p>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4">
+                    <div className="badge bg-amber-50 text-amber-700 border-amber-100 flex items-center font-bold px-3 py-1.5 uppercase tracking-widest text-[10px]">
+                      <Star className="w-3 h-3 mr-2 fill-amber-500" /> {task.points_min}-{task.points_max} pts Reward
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-lg">{task.title}</h3>
-                      <p className="text-gray-500 mt-1">{task.description}</p>
-                      <div className="flex items-center mt-3">
-                        <Star className="w-5 h-5 text-yellow-400 mr-2" />
-                        <span className="font-semibold text-gray-700">
-                          {task.points_min}-{task.points_max} points
-                        </span>
-                        <span className="ml-4 badge bg-gray-100 text-gray-600 capitalize">
-                          {task.task_type}
-                        </span>
-                      </div>
+                    <div className="badge bg-slate-100 text-slate-600 border-slate-200 font-black px-3 py-1.5 uppercase tracking-widest text-[10px]">
+                      {task.task_type} Task
                     </div>
                   </div>
-                  <Link href={`/dashboard/tasks/${task.id}`} className="btn-primary py-3 px-8 text-center">
-                    Start
-                  </Link>
                 </div>
               </div>
-            ))}
+              <Link 
+                href={`/dashboard/tasks/${task.id}`} 
+                className="w-full md:w-auto bg-primary-600 hover:bg-black text-white px-10 py-5 rounded-2xl font-black shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center"
+              >
+                GO TO TASK <ChevronRight className="w-5 h-5 ml-2" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </main>
+        ))}
+      </div>
     </div>
   );
 }

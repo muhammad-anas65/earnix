@@ -2,18 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { 
-  LayoutDashboard, 
   Wallet, 
   Gift, 
   CreditCard, 
-  Bell, 
-  Settings,
-  LogOut,
-  TrendingUp,
-  CheckCircle,
-  Clock,
+  Clock, 
   ChevronRight,
   Zap,
   Users,
@@ -23,28 +16,10 @@ import {
   Award,
   Menu,
   X,
-  Bell as BellIcon
+  Bell as BellIcon,
+  Settings
 } from 'lucide-react';
 import { cn, formatCurrency, formatPoints, formatDateTime, getInitials, DEFAULT_PLANS } from '@/lib/utils';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  referral_code: string;
-  plan_id: string;
-  plan?: typeof DEFAULT_PLANS[0];
-  status: string;
-}
-
-interface WalletData {
-  available_points: number;
-  pending_points: number;
-  locked_points: number;
-  total_earned: number;
-  total_withdrawn: number;
-}
 
 interface Task {
   id: string;
@@ -68,19 +43,7 @@ const mockReferrals: Referral[] = [
   { id: '2', referred_name: 'Muhammad Ali', status: 'pending', reward_points: 0, created_at: '2024-01-18' },
 ];
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', active: true },
-  { icon: Target, label: 'Tasks', href: '/dashboard/tasks', active: false },
-  { icon: Gift, label: 'Referrals', href: '/dashboard/referrals', active: false },
-  { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet', active: false },
-  { icon: CreditCard, label: 'Withdraw', href: '/dashboard/withdraw', active: false },
-  { icon: BellIcon, label: 'Notifications', href: '/dashboard/notifications', active: false },
-  { icon: Settings, label: 'Settings', href: '/dashboard/settings', active: false },
-];
-
 export default function DashboardPage() {
-  const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [wallet, setWallet] = useState<any>(null);
   const [dailyStats, setDailyStats] = useState<any>(null);
@@ -115,9 +78,11 @@ export default function DashboardPage() {
   }, []);
 
   if (isLoading || !user) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center p-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+      </div>
+    );
   }
 
   const getTaskIcon = (type: string) => {
@@ -132,348 +97,213 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar - Desktop */}
-      <aside className={cn(
-        'bg-white border-r border-gray-200 fixed left-0 top-0 h-full z-40 transition-all duration-300 hidden lg:block',
-        sidebarOpen ? 'w-72' : 'w-20'
-      )}>
-        <div className="p-6 border-b border-gray-100">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-7 h-7 text-white" />
+    <div className="space-y-10">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Available Balance */}
+        <div className="card p-7 hover-scale border-l-4 border-green-500 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center">
+              <Wallet className="w-7 h-7 text-green-600" />
             </div>
-            {sidebarOpen && <span className="text-2xl font-bold text-gradient">Earnix</span>}
-          </Link>
+            <span className="text-green-600 text-xs font-bold bg-green-50 px-3 py-1 rounded-full border border-green-100 uppercase tracking-wider">
+              Ready
+            </span>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">
+            {formatPoints(wallet.available_points)} pts
+          </h3>
+          <p className="text-gray-500 font-medium text-sm">
+            ≈ {formatCurrency(wallet.available_points * 0.1)}
+          </p>
         </div>
         
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center px-5 py-4 rounded-xl transition-all',
-                item.active 
-                  ? 'bg-primary-50 text-primary-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              )}
-            >
-              <item.icon className="w-6 h-6" />
-              {sidebarOpen && <span className="ml-4 font-medium">{item.label}</span>}
-            </Link>
-          ))}
-        </nav>
-        
-        <div className="absolute bottom-6 left-4 right-4">
-          <button 
-            onClick={async () => {
-              await fetch('/api/auth/logout', { method: 'POST' });
-              router.push('/');
-            }}
-            className="flex items-center w-full px-5 py-4 text-gray-600 hover:bg-gray-50 rounded-xl transition-all"
-          >
-            <LogOut className="w-6 h-6" />
-            {sidebarOpen && <span className="ml-4 font-medium">Logout</span>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Mobile Sidebar */}
-      <div className={cn(
-        'lg:hidden fixed left-0 top-0 h-full w-72 bg-white z-50 transform transition-transform',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+        {/* Pending Balance */}
+        <div className="card p-7 hover-scale border-l-4 border-yellow-500 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center">
+              <Clock className="w-7 h-7 text-yellow-600" />
             </div>
-            <span className="text-xl font-bold text-gradient">Earnix</span>
-          </Link>
-          <button onClick={() => setSidebarOpen(false)}>
-            <X className="w-6 h-6" />
-          </button>
+            <span className="text-yellow-600 text-xs font-bold bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100 uppercase tracking-wider">
+              Holding
+            </span>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">
+            {formatPoints(wallet.pending_points)} pts
+          </h3>
+          <p className="text-gray-500 font-medium text-sm">Verification in progress</p>
         </div>
         
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'flex items-center px-5 py-4 rounded-xl transition-all',
-                item.active 
-                  ? 'bg-primary-50 text-primary-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              )}
-            >
-              <item.icon className="w-6 h-6" />
-              <span className="ml-4 font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
+        {/* Today's Progress */}
+        <div className="card p-7 hover-scale border-l-4 border-primary-500 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center">
+              <Zap className="w-7 h-7 text-primary-600" />
+            </div>
+            <span className="text-primary-600 text-xs font-bold bg-primary-50 px-3 py-1 rounded-full border border-primary-100 uppercase tracking-wider">
+              Daily
+            </span>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">
+            {dailyStats.tasks_completed}/{dailyStats.daily_limit} tasks
+          </h3>
+          <p className="text-gray-500 font-medium text-sm">Task limit resets daily</p>
+        </div>
+        
+        {/* Total Earned */}
+        <div className="card p-7 hover-scale border-l-4 border-indigo-500 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center">
+              <Award className="w-7 h-7 text-indigo-600" />
+            </div>
+            <span className="text-indigo-600 text-xs font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-wider">
+              Total
+            </span>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">
+            {formatPoints(wallet.total_earned)} pts
+          </h3>
+          <p className="text-gray-500 font-medium text-sm">Overall performance</p>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-20">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-5">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-500">Welcome back, {user.name}!</p>
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Tasks Section */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="card overflow-hidden">
+            <div className="p-7 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-800">Earn Points</h2>
+                  <p className="text-gray-500 mt-0.5 text-sm">Complete available tasks to fill your wallet</p>
+                </div>
+                <Link href="/dashboard/tasks" className="text-primary-600 hover:text-primary-700 font-bold text-sm bg-primary-50 px-4 py-2 rounded-lg transition-colors">
+                  View All
+                </Link>
+              </div>
+              
+              {/* Daily Progress Bar */}
+              <div className="mt-8">
+                <div className="flex items-center justify-between text-sm mb-3">
+                  <span className="text-slate-600 font-bold">Daily Task Limit</span>
+                  <span className="font-bold text-primary-600">{dailyStats.tasks_completed} / {dailyStats.daily_limit} completed</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-4 relative overflow-hidden ring-4 ring-white shadow-inner">
+                  <div 
+                    className="bg-gradient-to-r from-primary-500 to-indigo-600 h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${Math.min((dailyStats.tasks_completed / dailyStats.daily_limit) * 100, 100)}%` }}
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard/notifications" className="relative p-3 hover:bg-gray-100 rounded-xl">
-                <BellIcon className="w-6 h-6 text-gray-600" />
-                <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full"></span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold text-lg">
-                  {getInitials(user.name)}
+            <div className="divide-y divide-gray-100">
+              {tasks.length === 0 ? (
+                <div className="p-20 text-center">
+                   <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                   <p className="text-gray-500 font-medium">No tasks currently available for your plan.</p>
                 </div>
-                <div className="hidden md:block">
-                  <p className="font-semibold text-gray-900">{user.name}</p>
-                  <p className="text-sm text-gray-500">{user.plan?.display_name || 'Free'} Plan</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Dashboard Content */}
-        <div className="p-6 lg:p-10">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            {/* Available Balance */}
-            <div className="card p-7">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <Wallet className="w-7 h-7 text-green-600" />
-                </div>
-                <span className="text-green-500 text-sm font-semibold flex items-center">
-                  <ArrowUpRight className="w-4 h-4 mr-1" />
-                  Available
-                </span>
-              </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                {formatPoints(wallet.available_points)} pts
-              </h3>
-              <p className="text-gray-500">
-                = {formatCurrency(wallet.available_points * 0.1)}
-              </p>
-            </div>
-            
-            {/* Pending Balance */}
-            <div className="card p-7">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
-                  <Clock className="w-7 h-7 text-yellow-600" />
-                </div>
-                <span className="text-yellow-500 text-sm font-semibold flex items-center">
-                  <Clock className="w-4 h-4 mr-1" />
-                  Pending
-                </span>
-              </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                {formatPoints(wallet.pending_points)} pts
-              </h3>
-              <p className="text-gray-500">Processing rewards</p>
-            </div>
-            
-            {/* Today's Progress */}
-            <div className="card p-7">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
-                  <Zap className="w-7 h-7 text-primary-600" />
-                </div>
-                <span className="text-primary-500 text-sm font-semibold">
-                  3/10 tasks
-                </span>
-              </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                145 pts
-              </h3>
-              <p className="text-gray-500">Earned today</p>
-            </div>
-            
-            {/* Total Earned */}
-            <div className="card p-7">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 bg-secondary-100 rounded-2xl flex items-center justify-center">
-                  <Award className="w-7 h-7 text-secondary-600" />
-                </div>
-                <span className="text-secondary-500 text-sm font-semibold flex items-center">
-                  <ArrowUpRight className="w-4 h-4 mr-1" />
-                  All Time
-                </span>
-              </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                {formatPoints(wallet.total_earned)} pts
-              </h3>
-              <p className="text-gray-500">Total earned</p>
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Tasks Section */}
-            <div className="lg:col-span-2">
-              <div className="card">
-                <div className="p-7 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">Available Tasks</h2>
-                    <Link href="/dashboard/tasks" className="text-primary-600 hover:underline font-semibold">
-                      View All
+              ) : tasks.map((task) => (
+                <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors group">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-6">
+                      <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-3xl shadow-sm group-hover:shadow-md transition-shadow">
+                        {getTaskIcon(task.task_type)}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-xl">{task.title}</h3>
+                        <p className="text-gray-500 mt-1 line-clamp-1">{task.description}</p>
+                        <div className="flex items-center mt-3 bg-yellow-50 w-fit px-3 py-1 rounded-lg border border-yellow-100">
+                          <Star className="w-4 h-4 text-yellow-500 mr-2 fill-yellow-500" />
+                          <span className="font-bold text-yellow-700 text-sm">
+                            {task.points_min}-{task.points_max} pts reward
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link 
+                      href={`/dashboard/tasks/${task.id}`}
+                      className="bg-slate-900 hover:bg-black text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-slate-900/10 transition-all flex items-center"
+                    >
+                      Process <ChevronRight className="w-4 h-4 ml-2" />
                     </Link>
                   </div>
-                  
-                  {/* Daily Progress Bar */}
-                  <div className="mt-6">
-                    <div className="flex items-center justify-between text-sm mb-3">
-                      <span className="text-gray-600 font-medium">Daily Progress</span>
-                      <span className="font-semibold">{dailyStats.tasks_completed}/{dailyStats.daily_limit} tasks</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div 
-                        className="bg-gradient-primary h-3 rounded-full transition-all"
-                        style={{ width: `${Math.min((dailyStats.tasks_completed / dailyStats.daily_limit) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
                 </div>
-                
-                <div className="divide-y divide-gray-100">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-5">
-                          <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center text-2xl">
-                            {getTaskIcon(task.task_type)}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 text-lg">{task.title}</h3>
-                            <p className="text-gray-500 mt-1">{task.description}</p>
-                            <div className="flex items-center mt-3">
-                              <Star className="w-5 h-5 text-yellow-400 mr-2" />
-                              <span className="font-semibold text-gray-700">
-                                {task.points_min}-{task.points_max} points
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <Link 
-                          href={`/dashboard/tasks/${task.id}`}
-                          className="btn-primary py-3 px-6 text-sm"
-                        >
-                          Start
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-6">
-              {/* Referral Card */}
-              <div className="card p-8 bg-gradient-to-br from-primary-600 to-secondary-600 text-white">
-                <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-xl">Refer & Earn</h3>
-                  <Users className="w-7 h-7" />
-                </div>
-                <p className="text-white/80 mb-5">
-                  Invite friends and earn up to 350 points when they qualify!
-                </p>
-                <div className="bg-white/20 rounded-xl p-4 mb-5">
-                  <p className="text-xs text-white/70 mb-2">Your Referral Code</p>
-                  <p className="font-mono font-bold text-2xl">{user.referral_code}</p>
-                </div>
-                <button className="w-full bg-white text-primary-600 font-bold py-4 rounded-xl hover:bg-white/90 transition-colors">
-                  Share Code
-                </button>
-              </div>
-
-              {/* Recent Referrals */}
-              <div className="card p-7">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-bold text-gray-900">Recent Referrals</h3>
-                  <Link href="/dashboard/referrals" className="text-primary-600 hover:underline font-semibold">
-                    View All
-                  </Link>
-                </div>
-                <div className="space-y-5">
-                  {mockReferrals.map((ref) => (
-                    <div key={ref.id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600">
-                          {getInitials(ref.referred_name)}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{ref.referred_name}</p>
-                          <p className="text-xs text-gray-500">{formatDateTime(ref.created_at)}</p>
-                        </div>
-                      </div>
-                      <span className={cn(
-                        'badge',
-                        ref.status === 'qualified' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      )}>
-                        {ref.status === 'qualified' ? `${ref.reward_points} pts` : 'Pending'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="card p-7">
-                <h3 className="font-bold text-gray-900 mb-5">Quick Actions</h3>
-                <div className="space-y-3">
-                  <Link 
-                    href="/dashboard/withdraw"
-                    className="flex items-center justify-between p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <CreditCard className="w-6 h-6 text-green-600 mr-4" />
-                      <span className="font-semibold text-gray-900">Withdraw</span>
-                    </div>
-                    <ChevronRight className="w-6 h-6 text-gray-400" />
-                  </Link>
-                  <Link 
-                    href="/dashboard/tasks"
-                    className="flex items-center justify-between p-4 bg-primary-50 rounded-xl hover:bg-primary-100 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <Target className="w-6 h-6 text-primary-600 mr-4" />
-                      <span className="font-semibold text-gray-900">Complete Tasks</span>
-                    </div>
-                    <ChevronRight className="w-6 h-6 text-gray-400" />
-                  </Link>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
-      </main>
+
+        {/* Right Sidebar */}
+        <div className="space-y-8">
+          {/* Referral Card */}
+          <div className="p-8 bg-gradient-to-br from-indigo-600 via-primary-600 to-primary-700 rounded-3xl text-white shadow-xl shadow-primary-500/20 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-10 translate-x-1/2 -translate-y-1/2 bg-white/10 rounded-full w-40 h-40 blur-2xl" />
+            
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <h3 className="font-black text-2xl uppercase tracking-tighter">Refer & Earn</h3>
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            
+            <p className="text-white/80 font-medium mb-8 leading-relaxed relative z-10">
+              Earn an extra <span className="text-white font-bold">500 points</span> for every friend who joins Earnix with your code!
+            </p>
+            
+            <div className="bg-black/10 backdrop-blur-md rounded-2xl p-5 mb-8 border border-white/5 relative z-10">
+              <p className="text-[10px] uppercase font-black tracking-widest text-white/50 mb-2">My Exclusive Code</p>
+              <p className="font-mono font-black text-3xl tracking-widest">{user.referral_code?.toUpperCase()}</p>
+            </div>
+            
+            <button className="w-full bg-white text-primary-700 font-black py-4 rounded-2xl hover:bg-slate-50 transition-all shadow-lg shadow-black/10 relative z-10">
+              INVITE FRIENDS
+            </button>
+          </div>
+
+          {/* Activity Feed */}
+          <div className="card overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-slate-800">Referral Network</h3>
+              <Link href="/dashboard/referrals" className="text-xs text-primary-600 font-bold uppercase hover:underline">Manage</Link>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {mockReferrals.map((ref) => (
+                <div key={ref.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500 border-2 border-white shadow-sm">
+                      {getInitials(ref.referred_name)}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 text-sm">{ref.referred_name}</p>
+                      <p className="text-[10px] text-gray-400 font-medium">{formatDateTime(ref.created_at)}</p>
+                    </div>
+                  </div>
+                  <span className={cn(
+                    'text-[10px] font-black px-3 py-1.5 rounded-lg border uppercase tracking-widest',
+                    ref.status === 'qualified' 
+                      ? 'bg-green-50 text-green-700 border-green-100' 
+                      : 'bg-amber-50 text-amber-700 border-amber-100'
+                  )}>
+                    {ref.status === 'qualified' ? `+${ref.reward_points} pts` : 'In Progress'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Support Widget */}
+          <div className="card p-6 bg-slate-50 border-2 border-dashed border-slate-200 flex items-center space-x-4">
+             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                <Settings className="w-6 h-6 text-slate-400" />
+             </div>
+             <div>
+                <p className="text-sm font-bold text-slate-800">Support Center</p>
+                <p className="text-xs text-slate-500">Need help? We're available 24/7</p>
+             </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

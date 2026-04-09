@@ -25,22 +25,39 @@ export async function middleware(request: NextRequest) {
     return res;
   };
 
+  const isUserPath = pathname.startsWith('/dashboard') || pathname === '/payment' || pathname === '/pending-approval';
+  const isAdminPath = pathname.startsWith('/admin');
+
+  // API Route Protection
   if (pathname.startsWith('/api/') && 
       !pathname.startsWith('/api/auth/') && 
       !pathname.startsWith('/api/admin/login') && 
       !pathname.startsWith('/api/admin/register')) {
-    if (!isAuthUser && !isAdmin) {
+    
+    // Admin API access - requires isAdmin
+    if (pathname.startsWith('/api/admin/') && !isAdmin) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Admin Only' }, { status: 403 });
+    }
+
+    // Standard User API access - requires isAuthUser
+    if (!pathname.startsWith('/api/admin/') && !isAuthUser && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
 
-  if (pathname.startsWith('/dashboard') || pathname === '/payment' || pathname === '/pending-approval') {
+  // User Dashboard Boundary
+  if (isUserPath) {
     if (!isAuthUser) {
       return redirectTo('/login');
     }
+    // Strict block: Admin cannot perform user tasks in user UI by default to avoid mixing
+    if (isAdmin && !isAuthUser) {
+      return redirectTo('/admin');
+    }
   }
 
-  if (pathname.startsWith('/admin')) {
+  // Admin Dashboard Boundary
+  if (isAdminPath) {
     if (pathname === '/admin/login' || pathname === '/admin/register') {
       if (isAdmin) {
         return redirectTo('/admin');
@@ -49,13 +66,18 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!isAdmin) {
+      // If they are a normal user, don't let them see admin login either if they try to hack
       return redirectTo('/admin/login');
     }
   }
 
+  // Auth Path Protection
   if (authPaths.some(path => pathname.startsWith(path))) {
     if (isAuthUser) {
       return redirectTo('/dashboard');
+    }
+    if (isAdmin) {
+      return redirectTo('/admin');
     }
   }
 

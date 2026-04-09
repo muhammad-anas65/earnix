@@ -21,7 +21,8 @@ import {
   Search,
   ChevronDown,
   Eye,
-  Shield
+  Shield,
+  Zap
 } from 'lucide-react';
 import { cn, formatCurrency, formatDateTime, getInitials } from '@/lib/utils';
 
@@ -30,8 +31,10 @@ const navigation = [
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Approvals', href: '/admin/approvals', icon: CreditCard },
   { name: 'Withdrawals', href: '/admin/withdrawals', icon: Wallet },
+  { name: 'Plans', href: '/admin/plans', icon: Zap },
   { name: 'Tasks', href: '/admin/tasks', icon: Target },
   { name: 'Referrals', href: '/admin/referrals', icon: Gift },
+  { name: 'Fraud', href: '/admin/fraud', icon: Shield },
   { name: 'Payments', href: '/admin/payments', icon: FileText },
   { name: 'Reports', href: '/admin/reports', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },

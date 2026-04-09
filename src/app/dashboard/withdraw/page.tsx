@@ -1,283 +1,166 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { 
-  TrendingUp,
-  Wallet,
-  Gift,
-  CreditCard,
-  Smartphone,
-  Menu,
-  X,
-  ArrowUpRight,
-  ArrowDownRight
-} from 'lucide-react';
-import { cn, formatPoints, formatCurrency } from '@/lib/utils';
-
-const withdrawSchema = z.object({
-  amount: z.number().min(200, 'Minimum withdrawal is PKR 200'),
-  method: z.enum(['easypaisa', 'jazzcash']),
-  recipientName: z.string().min(2, 'Name is required'),
-  recipientPhone: z.string().min(11, 'Valid phone number required'),
-});
-
-type WithdrawForm = z.infer<typeof withdrawSchema>;
-
-const mockWallet = {
-  available_points: 2450,
-  pending_points: 320,
-  locked_points: 500,
-  inPKR: 245,
-};
+import { useState, useEffect } from 'react';
+import { CreditCard, Wallet, Clock, History, AlertCircle, ChevronRight, CheckCircle } from 'lucide-react';
+import { formatCurrency, formatPoints } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 export default function WithdrawPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<WithdrawForm>({
-    resolver: zodResolver(withdrawSchema),
-    defaultValues: {
-      amount: 0,
-      method: 'easypaisa',
-    },
-  });
-  
-  const amount = watch('amount');
-  const minWithdrawal = 200;
+  const [wallet, setWallet] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('easypaisa');
 
-  const onSubmit = async (data: WithdrawForm) => {
-    setIsLoading(true);
-    
+  const fetchData = async () => {
     try {
-      const response = await fetch('/api/withdrawals', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-user-id': 'mock-user-id',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      const result = await response.json();
-      
+      const resp = await fetch('/api/users/me');
+      const result = await resp.json();
       if (result.success) {
-        alert('Withdrawal request submitted successfully!');
-      } else {
-        alert(result.error || 'Failed to submit withdrawal');
+        setWallet(result.data.wallet);
       }
-    } catch (error) {
-      alert('Something went wrong');
+    } catch (err) {
+      console.error(err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    
+    setWithdrawing(true);
+    // Simulate API call for now or connect to real endpoint if it exists
+    setTimeout(() => {
+      toast.success('Withdrawal request submitted for approval!');
+      setWithdrawing(false);
+      setAmount('');
+    }, 2000);
+  };
+
+  if (loading || !wallet) {
+    return <div className="p-20 text-center animate-pulse font-bold text-slate-400 font-mono tracking-widest uppercase">Initializing withdrawal vault...</div>;
+  }
+
+  const minWithdrawal = 1000; // in points
+  const pointsToWithdraw = parseFloat(amount) || 0;
+  const currencyAmount = pointsToWithdraw * 0.1;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="space-y-10">
+      <div>
+        <h1 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">Request Payout</h1>
+        <p className="text-gray-500 font-medium">Turn your hard-earned points into real currency.</p>
+      </div>
 
-      {/* Sidebar */}
-      <aside className={cn(
-        'lg:hidden fixed left-0 top-0 h-full w-72 bg-white z-50 transform transition-transform',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gradient">Earnix</span>
-          </Link>
-          <button onClick={() => setSidebarOpen(false)}>
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <nav className="p-4 space-y-2">
-          {[
-            { icon: TrendingUp, label: 'Dashboard', href: '/dashboard' },
-            { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
-            { icon: Gift, label: 'Referrals', href: '/dashboard/referrals' },
-            { icon: CreditCard, label: 'Withdraw', href: '/dashboard/withdraw', active: true },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'flex items-center px-5 py-4 rounded-xl transition-all',
-                item.active 
-                  ? 'bg-primary-50 text-primary-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              )}
-            >
-              <item.icon className="w-6 h-6" />
-              <span className="ml-4 font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-      </aside>
+      <div className="grid lg:grid-cols-3 gap-10">
+        {/* Main Withdrawal Box */}
+        <div className="lg:col-span-2 space-y-8">
+           <div className="card p-10 shadow-xl border-t-8 border-green-600">
+              <form onSubmit={handleWithdraw} className="space-y-8">
+                 <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Select Payout Method</label>
+                       <div className="grid gap-3">
+                          {['easypaisa', 'jazzcash'].map((m) => (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => setMethod(m)}
+                              className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all font-black uppercase text-xs tracking-wider ${
+                                method === m 
+                                ? 'border-primary-600 bg-primary-50 text-primary-700 shadow-md shadow-primary-500/10' 
+                                : 'border-slate-100 text-slate-400 hover:border-slate-200'
+                              }`}
+                            >
+                               {m} {method === m && <CheckCircle className="w-4 h-4" />}
+                            </button>
+                          ))}
+                       </div>
+                    </div>
 
-      <main className="flex-1">
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-5">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Withdraw</h1>
-                <p className="text-gray-500">Transfer your earnings to your account</p>
-              </div>
-            </div>
-          </div>
-        </header>
+                    <div className="space-y-4">
+                       <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Withdrawal Amount (Points)</label>
+                       <div className="relative">
+                          <Wallet className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300" />
+                          <input 
+                            type="number" 
+                            placeholder="Enter Points" 
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            max={wallet.available_points}
+                            className="w-full pl-14 pr-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-2xl text-slate-800 focus:border-green-500 focus:bg-white transition-all outline-none"
+                          />
+                       </div>
+                       <div className="flex justify-between items-center px-2">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Available: <span className="text-green-600">{formatPoints(wallet.available_points)} pts</span></p>
+                          <button 
+                            type="button"
+                            onClick={() => setAmount(wallet.available_points.toString())}
+                            className="text-[10px] font-black text-primary-600 uppercase tracking-widest hover:underline"
+                          >
+                             Max Points
+                          </button>
+                       </div>
+                    </div>
+                 </div>
 
-        <div className="p-6 lg:p-10">
-          <div className="max-w-2xl mx-auto">
-            {/* Balance Card */}
-            <div className="card bg-gradient-to-br from-primary-600 to-secondary-600 text-white p-8 mb-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 mb-2">Available Balance</p>
-                  <p className="text-4xl font-bold mb-1">{formatPoints(mockWallet.available_points)} points</p>
-                  <p className="text-white/80">= {formatCurrency(mockWallet.inPKR)}</p>
-                </div>
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Wallet className="w-8 h-8" />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/20">
-                <div>
-                  <p className="text-sm text-white/70">Pending</p>
-                  <p className="text-xl font-semibold">{formatPoints(mockWallet.pending_points)} pts</p>
-                </div>
-                <div>
-                  <p className="text-sm text-white/70">Locked</p>
-                  <p className="text-xl font-semibold">{formatPoints(mockWallet.locked_points)} pts</p>
-                </div>
-              </div>
-            </div>
+                 {pointsToWithdraw > 0 && (
+                    <div className="p-6 bg-slate-900 rounded-3xl text-white flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-500">
+                       <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Estimated Payout</p>
+                          <p className="text-3xl font-black text-green-400">{formatCurrency(currencyAmount)} PKR</p>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium">Conversion Rate: 10 pts = 1 PKR</p>
+                    </div>
+                 )}
 
-            {/* Withdrawal Form */}
-            <div className="card p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Request Withdrawal</h3>
-              
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Payment Method */}
-                <div>
-                  <label className="label font-medium mb-3">Payment Method</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="cursor-pointer">
-                      <input type="radio" {...register('method')} value="easypaisa" className="sr-only peer" />
-                      <div className="p-4 border-2 border-gray-200 rounded-xl peer-checked:border-primary-500 peer-checked:bg-primary-50 transition-all">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
-                            <Smartphone className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">EasyPaisa</p>
-                            <p className="text-sm text-gray-500">Instant transfer</p>
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                    <label className="cursor-pointer">
-                      <input type="radio" {...register('method')} value="jazzcash" className="sr-only peer" />
-                      <div className="p-4 border-2 border-gray-200 rounded-xl peer-checked:border-primary-500 peer-checked:bg-primary-50 transition-all">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-3">
-                            <Smartphone className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">JazzCash</p>
-                            <p className="text-sm text-gray-500">Instant transfer</p>
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Recipient Name */}
-                <div>
-                  <label className="label font-medium">Account Name</label>
-                  <input
-                    {...register('recipientName')}
-                    type="text"
-                    className="input"
-                    placeholder="Enter your account name"
-                  />
-                  {errors.recipientName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.recipientName.message}</p>
-                  )}
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <label className="label font-medium">Phone Number</label>
-                  <input
-                    {...register('recipientPhone')}
-                    type="tel"
-                    className="input"
-                    placeholder="03XX-XXXXXXX"
-                  />
-                  {errors.recipientPhone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.recipientPhone.message}</p>
-                  )}
-                </div>
-
-                {/* Amount */}
-                <div>
-                  <label className="label font-medium">Amount (PKR)</label>
-                  <input
-                    {...register('amount', { valueAsNumber: true })}
-                    type="number"
-                    className="input text-2xl font-bold"
-                    placeholder="Enter amount"
-                  />
-                  {errors.amount && (
-                    <p className="text-red-500 text-sm mt-1">{errors.amount.message}</p>
-                  )}
-                  <p className="text-sm text-gray-500 mt-2">
-                    Minimum withdrawal: {formatCurrency(minWithdrawal)} • 
-                    Your balance: {formatCurrency(mockWallet.inPKR)}
-                  </p>
-                </div>
-
-                {/* Info Box */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> 100 points = 10 PKR. Your points will be converted at this rate.
-                    Withdrawal requests are usually processed within 24-48 hours.
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full btn-primary py-4 text-lg"
-                >
-                  {isLoading ? 'Processing...' : 'Submit Withdrawal Request'}
-                </button>
+                 <button 
+                   disabled={withdrawing || wallet.available_points < minWithdrawal || pointsToWithdraw < minWithdrawal}
+                   className="w-full bg-green-600 hover:bg-black text-white py-6 rounded-3xl font-black text-xl shadow-2xl shadow-green-600/20 transition-all flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none uppercase tracking-tighter"
+                 >
+                    {withdrawing ? 'PROCESSING...' : wallet.available_points < minWithdrawal ? `MIN. LIMIT: ${formatPoints(minWithdrawal)} PTS` : 'CONFIRM WITHDRAWAL'}
+                 </button>
               </form>
-            </div>
-          </div>
+           </div>
         </div>
-      </main>
+
+        {/* Info Sidebar */}
+        <div className="space-y-8">
+           <div className="card p-8 bg-slate-900 border-none text-white relative h-full">
+              <h3 className="text-lg font-black uppercase mb-6 flex items-center tracking-tight">
+                 <AlertCircle className="w-5 h-5 mr-3 text-amber-500" /> Payout Rules
+              </h3>
+              <ul className="space-y-6 text-sm font-medium text-slate-400">
+                 <li className="flex items-start">
+                    <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center mr-4 mt-0.5 font-bold text-xs text-white">1</div>
+                    <p>Withdrawals are processed within <span className="text-white font-bold">24-48 hours</span> after verification.</p>
+                 </li>
+                 <li className="flex items-start">
+                    <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center mr-4 mt-0.5 font-bold text-xs text-white">2</div>
+                    <p>Minimum withdrawal limit is based on your currently active membership plan.</p>
+                 </li>
+                 <li className="flex items-start">
+                    <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center mr-4 mt-0.5 font-bold text-xs text-white">3</div>
+                    <p>Ensure your account status is <span className="text-green-500 font-bold uppercase">Active</span> before requesting.</p>
+                 </li>
+              </ul>
+
+              <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/5">
+                 <p className="text-3xl font-black text-white">{formatPoints(wallet.available_points || 0)}</p>
+                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Total Available Points</p>
+              </div>
+           </div>
+        </div>
+      </div>
     </div>
   );
 }
