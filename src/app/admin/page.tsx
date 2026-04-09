@@ -19,7 +19,13 @@ import {
   UserPlus,
   Activity
 } from 'lucide-react';
-import { formatCurrency, formatPoints, formatDateTime } from '@/lib/utils';
+import { 
+  cn, 
+  formatCurrency, 
+  formatPoints, 
+  formatDateTime, 
+  getInitials 
+} from '@/lib/utils';
 import UserActions from '@/components/admin/UserActions';
 
 export default function AdminDashboardPage() {
