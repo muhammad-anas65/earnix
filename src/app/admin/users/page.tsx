@@ -1,7 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import { supabaseAdmin } from '@/lib/supabase';
-import { Mail, Phone, Calendar, Star, MoreVertical } from 'lucide-react';
+import { Mail, Phone, Star } from 'lucide-react';
+import UserActions from '@/components/admin/UserActions';
+import { cn } from '@/lib/utils';
 
 export default async function AdminUsersPage() {
   const { data: users, error } = await supabaseAdmin
@@ -59,36 +61,32 @@ export default async function AdminUsersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center text-gray-600">
-                        <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                        {user.email}
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                        {user.phone || 'N/A'}
-                      </div>
+                    <div className="flex items-center text-gray-700 mb-1">
+                      <Mail className="w-4 h-4 mr-2 text-gray-400" /> {user.email}
+                    </div>
+                    <div className="flex items-center text-gray-700">
+                      <Phone className="w-4 h-4 mr-2 text-gray-400" /> {user.phone || 'No phone'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mb-1 ${
+                    <span className={cn('px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 inline-block', 
                       user.status === 'active' ? 'bg-green-100 text-green-700' : 
-                      user.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {user.status || 'inactive'}
+                      user.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                      'bg-red-100 text-red-700'
+                    )}>
+                      {user.status}
                     </span>
-                    <p className="text-xs text-gray-500 flex items-center items-center mt-1 font-medium">
-                      <Star className="w-3 h-3 mr-1 text-purple-500" /> 
+                    <div className="flex items-center font-bold text-gray-900">
+                      <Star className="w-4 h-4 mr-1 text-primary-500" />
                       {user.plan?.display_name || 'Free Plan'}
-                    </p>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-gray-900">
-                    ₨ {user.wallet?.total_earned || 0}
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-900">Rs {user.wallet?.[0]?.available_points || 0}</div>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Total Points</p>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                      <MoreVertical className="w-5 h-5 text-gray-500" />
-                    </button>
+                     <UserActions userId={user.id} userStatus={user.status} />
                   </td>
                 </tr>
               ))}
