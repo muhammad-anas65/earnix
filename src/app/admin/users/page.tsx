@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { supabaseAdmin } from '@/lib/supabase';
-import { Mail, Phone, Star } from 'lucide-react';
+import { Mail, Phone, Star, Zap, Users } from 'lucide-react';
 import UserActions from '@/components/admin/UserActions';
 import { cn } from '@/lib/utils';
 
