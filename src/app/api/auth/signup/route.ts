@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { generateReferralCode } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import AdminAlertService from '@/lib/alerts';
 
 export async function POST(request: NextRequest) {
   try {
@@ -84,7 +85,15 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (referrer) {
-        referredById = referrer.id;
+        if (referrer.id === authData.user.id) {
+           AdminAlertService.suspiciousActivity({ name: name, email: email }, { 
+             type: 'Referral Abuse', 
+             risk: 'HIGH', 
+             reason: 'Self-referral attempt detected' 
+           });
+        } else {
+           referredById = referrer.id;
+        }
       }
     }
 
@@ -145,6 +154,15 @@ export async function POST(request: NextRequest) {
       });
       if (refError) console.error('Referral record error:', refError);
     }
+
+    // Send Alert to Google Chat
+    AdminAlertService.newUser({
+      ...newUser,
+      plan_id: plan.display_name
+    });
+
+    // Audit pending queue size
+    AdminAlertService.checkPendingThreshold();
 
     return NextResponse.json({
       success: true,

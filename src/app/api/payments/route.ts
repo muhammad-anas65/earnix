@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import AdminAlertService from '@/lib/alerts';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,6 +77,18 @@ export async function POST(request: NextRequest) {
     await supabase.auth.updateUser({
       data: { status: 'pending' }
     });
+
+    // Send Alert to Google Chat
+    AdminAlertService.paymentSubmitted(
+      { name: user.user_metadata.name || 'User', email: user.email, phone: user.user_metadata.phone },
+      { 
+        plan: planId, 
+        amount, 
+        method: 'easypaisa/jazzcash', 
+        txnId: transactionId, 
+        proof: true 
+      }
+    );
 
     return NextResponse.json({
       success: true,

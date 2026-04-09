@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import AdminAlertService from '@/lib/alerts';
 
 export async function POST(
   request: NextRequest,
@@ -30,6 +31,19 @@ export async function POST(
     await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: { status: 'rejected' }
     });
+
+    // Send Alert for Rejection
+    const { data: user } = await supabaseAdmin.from('users').select('*, plan:plans(*)').eq('id', userId).single();
+    if (user) {
+      AdminAlertService.send('MEDIUM', 'Rejected Payment Submission', {
+        user: { name: user.name, email: user.email },
+        event: { 
+          type: 'rejection', 
+          reason: reason || 'Information verification failed',
+          plan: user.plan?.display_name 
+        }
+      });
+    }
 
     return NextResponse.json({ success: true, message: 'User rejected successfully' });
 

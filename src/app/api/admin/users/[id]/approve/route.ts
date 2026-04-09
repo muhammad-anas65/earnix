@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import AdminAlertService from '@/lib/alerts';
 
 export async function POST(
   request: NextRequest,
@@ -44,6 +45,11 @@ export async function POST(
     await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: { status: 'active' }
     });
+
+    // Send Alert for Premium Activation
+    if (plan && plan.price > 0) {
+      AdminAlertService.premiumPurchase(user, plan.display_name, plan.price);
+    }
 
     return NextResponse.json({ success: true, message: 'User approved successfully' });
 

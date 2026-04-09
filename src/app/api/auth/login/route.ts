@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import AdminAlertService from '@/lib/alerts';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +25,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (authError || !authData.user) {
+      if (email) {
+        AdminAlertService.trackFailedLogin(email);
+      }
       return NextResponse.json(
         { success: false, error: authError?.message || 'Invalid email or password' },
         { status: 401 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import AdminAlertService from '@/lib/alerts';
 
 export async function POST(request: NextRequest) {
   try {
@@ -127,6 +128,17 @@ export async function POST(request: NextRequest) {
       body: `Your withdrawal request for ${amount} PKR has been submitted.`,
       type: 'withdrawal',
     });
+
+    // Send Alert to Google Chat
+    AdminAlertService.withdrawalRequested(
+      { name: user.name, email: user.email, phone: user.phone },
+      { 
+        amount: `₨ ${amount}`, 
+        method, 
+        accountName: recipientName, 
+        accountNumber: recipientPhone 
+      }
+    );
 
     return NextResponse.json({
       success: true,
