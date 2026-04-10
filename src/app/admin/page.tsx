@@ -183,7 +183,7 @@ export default function AdminDashboardPage() {
 
       {/* ── STATS GRID ── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {stats.map((stat, index) => (
+        {(STAT_CONFIGS as any[]).map((stat: any, index: number) => (
           <div
             key={index}
             className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-slate-50">
             {pendingApprovals.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                 <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
@@ -235,7 +235,7 @@ export default function AdminDashboardPage() {
                 <p className="text-sm font-bold text-slate-400">All caught up!</p>
                 <p className="text-xs text-slate-300 mt-1">No pending verifications</p>
               </div>
-            ) : pendingApprovals.map((user) => (
+            ) : (pendingApprovals as any[]).map((user: any) => (
               <div key={user.id} className="px-6 py-4 hover:bg-slate-50 transition-colors group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -276,7 +276,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="divide-y divide-slate-50">
-            {recentWithdrawals.map((w) => (
+            {(recentWithdrawals as any[]).map((w: any) => (
               <div key={w.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -284,13 +284,13 @@ export default function AdminDashboardPage() {
                       <Wallet className="w-5 h-5 text-slate-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-900">{w.user}</p>
+                      <p className="text-sm font-bold text-slate-900">{w.user?.name || w.user || 'Unknown User'}</p>
                       <p className="text-xs text-indigo-600 font-semibold uppercase tracking-wider">via {w.method}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-black text-slate-900">₨ {w.amount.toLocaleString()}</p>
-                    <p className="text-[10px] text-slate-400 font-medium">{w.created_at}</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{new Date(w.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
 
@@ -328,7 +328,7 @@ export default function AdminDashboardPage() {
 
       {/* ── AUX METRICS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {AUX_METRICS.map((m, i) => (
+        {(AUX_METRICS as any[]).map((m: any, i: number) => (
           <div
             key={i}
             className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
