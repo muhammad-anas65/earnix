@@ -150,27 +150,32 @@ export async function POST(
       .select()
       .single();
 
-    // Referral logic: Release reward if this is the 3rd task
-    const { count: totalCompleted } = await supabaseAdmin
-      .from('user_tasks')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('status', 'completed');
+    // ── 5. Referral Qualification Logic ──
+    // Business Rule: Referrer gets reward after referred user completes 3 tasks
+    const { data: referral } = await supabaseAdmin
+      .from('referrals')
+      .select('*')
+      .eq('referred_id', userId)
+      .eq('reward_sent', false)
+      .maybeSingle();
 
-    if (totalCompleted === 3) {
-      const { data: referral } = await supabaseAdmin
-        .from('referrals')
-        .select('*')
-        .eq('referred_id', userId)
-        .eq('status', 'pending')
-        .single();
+    if (referral) {
+      const newTasksCompleted = (referral.tasks_completed || 0) + 1;
       
-      if (referral) {
+      // Update task count in referral record
+      await supabaseAdmin
+        .from('referrals')
+        .update({ tasks_completed: newTasksCompleted })
+        .eq('id', referral.id);
+
+      if (newTasksCompleted === 3) {
+        // Mark as qualified and release reward
         await supabaseAdmin
           .from('referrals')
           .update({ 
             status: 'qualified', 
-            qualified_at: new Date().toISOString(),
+            reward_sent: true,
+            qualified_at: new Date().toISOString() 
           })
           .eq('id', referral.id);
 
@@ -184,20 +189,22 @@ export async function POST(
           await supabaseAdmin
             .from('wallets')
             .update({
-              available_points: referrerWallet.available_points + referral.reward_points,
-              total_earned: referrerWallet.total_earned + referral.reward_points,
+              available_points: (referrerWallet.available_points || 0) + referral.reward_points,
+              total_earned: (referrerWallet.total_earned || 0) + referral.reward_points,
             })
             .eq('user_id', referral.referrer_id);
 
+          // Notify Referrer
           await supabaseAdmin.from('notifications').insert({
             user_id: referral.referrer_id,
-            title: 'Referral Reward! 🎁',
-            body: `Your referral ${user.name} completed 3 tasks. You earned ${referral.reward_points} points!`,
+            title: 'Goal Achieved! 🏆',
+            body: `Your referral just completed 3 tasks! You've earned ${referral.reward_points} referral points.`,
             type: 'referral',
           });
         }
       }
     }
+    // ──────────────────────────────────────
 
     await supabaseAdmin.from('notifications').insert({
       user_id: userId,

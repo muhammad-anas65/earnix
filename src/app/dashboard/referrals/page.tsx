@@ -1,239 +1,301 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { 
-  TrendingUp,
-  Wallet,
-  Gift,
-  CreditCard,
-  Menu,
-  X,
   Copy,
   Share2,
   Users,
   CheckCircle,
-  Clock
+  Clock,
+  Gift,
+  TrendingUp,
+  Zap,
+  Loader2,
+  RefreshCw,
+  X
 } from 'lucide-react';
-import { cn, formatPoints, formatDateTime, getInitials } from '@/lib/utils';
+import { cn, formatPoints, formatDate, getInitials } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 interface Referral {
   id: string;
   referred_name: string;
+  referred_email: string;
   status: 'pending' | 'qualified' | 'expired';
   reward_points: number;
   created_at: string;
 }
 
-const mockReferrals: Referral[] = [
-  { id: '1', referred_name: 'Fatima Bibi', status: 'qualified', reward_points: 250, created_at: '2024-01-15' },
-  { id: '2', referred_name: 'Muhammad Ali', status: 'pending', reward_points: 0, created_at: '2024-01-18' },
-  { id: '3', referred_name: 'Ayesha Khan', status: 'qualified', reward_points: 250, created_at: '2024-01-20' },
-];
-
-const mockStats = {
-  totalReferrals: 12,
-  qualifiedReferrals: 8,
-  pendingReferrals: 4,
-  totalEarned: 2000,
-};
-
-const referralCode = 'ERNX-ABC123';
+interface ReferralStats {
+  totalReferrals: number;
+  qualifiedReferrals: number;
+  pendingReferrals: number;
+  totalEarned: number;
+}
 
 export default function ReferralsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [stats, setStats] = useState<ReferralStats>({ totalReferrals: 0, qualifiedReferrals: 0, pendingReferrals: 0, totalEarned: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(referralCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch('/api/referrals');
+      const result = await resp.json();
+      if (result.success) {
+        setReferralCode(result.data.referralCode);
+        setReferrals(result.data.referrals);
+        setStats(result.data.stats);
+      } else {
+        setError(result.error || 'Failed to load referrals');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load referral data');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-      {/* Sidebar */}
-      <aside className={cn(
-        'lg:hidden fixed left-0 top-0 h-full w-72 bg-white z-50 transform transition-transform',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+  const copyCode = () => {
+    if (referralCode) {
+      navigator.clipboard.writeText(referralCode.toUpperCase());
+      setCopied(true);
+      toast.success('Referral code copied!');
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const copyLink = () => {
+    const link = `${window.location.origin}/signup?ref=${referralCode}`;
+    navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    toast.success('Referral link copied!');
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const shareCode = async () => {
+    const shareData = {
+      title: 'Join Earnix!',
+      text: `Use my referral code ${referralCode.toUpperCase()} to join Earnix and start earning!`,
+      url: `${window.location.origin}/signup?ref=${referralCode}`,
+    };
+    
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (e) {
+        copyLink();
+      }
+    } else {
+      copyLink();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl bg-slate-200 animate-pulse h-12 w-48" />
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-200 to-violet-200 animate-pulse h-64" />
+        <div className="grid sm:grid-cols-4 gap-4">
+          {Array.from({length: 4}).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse h-24 border border-slate-100" />
+          ))}
+        </div>
+        <div className="bg-white rounded-2xl p-6 animate-pulse border border-slate-100 h-64" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mb-5">
+          <X className="w-9 h-9 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Couldn&apos;t load referrals</h2>
+        <p className="text-slate-400 text-sm mb-6 max-w-sm">{error}</p>
+        <button
+          onClick={fetchData}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-semibold text-sm shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+        >
+          <RefreshCw className="w-4 h-4" /> Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">Referrals</h1>
+        <p className="text-slate-400 text-sm mt-1">Invite friends and earn bonus points when they join.</p>
+      </div>
+
+      {/* ── REFERRAL CODE HERO ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl p-6 lg:p-8 text-white shadow-xl shadow-indigo-500/20">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-500/20 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center">
+              <Gift className="w-5 h-5 text-indigo-300" />
             </div>
-            <span className="text-xl font-bold text-gradient">Earnix</span>
-          </Link>
-          <button onClick={() => setSidebarOpen(false)}>
-            <X className="w-6 h-6" />
+            <div>
+              <h2 className="text-lg font-black">Invite Friends & Earn</h2>
+              <p className="text-xs text-indigo-200">Share your unique code and earn rewards!</p>
+            </div>
+          </div>
+
+          {/* Referral Code Box */}
+          <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl p-5 mb-5">
+            <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-2">Your Unique Referral Code</p>
+            <div className="flex items-center justify-between gap-4">
+              <p className="font-mono font-black text-3xl lg:text-4xl tracking-widest">
+                {referralCode?.toUpperCase() || 'N/A'}
+              </p>
+              <div className="flex gap-2 flex-shrink-0">
+                <button
+                  onClick={copyCode}
+                  className="bg-white/20 hover:bg-white/30 p-3 rounded-xl transition-all active:scale-95"
+                  title="Copy code"
+                >
+                  {copied ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={shareCode}
+                  className="bg-white/20 hover:bg-white/30 p-3 rounded-xl transition-all active:scale-95"
+                  title="Share"
+                >
+                  <Share2 className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Copy Link Button */}
+          <button
+            onClick={copyLink}
+            className={cn(
+              'flex items-center justify-center gap-2 w-full font-bold text-sm py-3 rounded-xl transition-all active:scale-95',
+              copiedLink
+                ? 'bg-emerald-500 text-white'
+                : 'bg-white text-indigo-700 hover:bg-indigo-50 shadow-lg shadow-black/10'
+            )}
+          >
+            {copiedLink ? (
+              <><CheckCircle className="w-4 h-4" /> Link Copied!</>
+            ) : (
+              <><Copy className="w-4 h-4" /> Copy Referral Link</>
+            )}
           </button>
         </div>
-        <nav className="p-4 space-y-2">
+      </div>
+
+      {/* ── STATS ROW ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Referrals', value: stats.totalReferrals, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Qualified', value: stats.qualifiedReferrals, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Pending', value: stats.pendingReferrals, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Points Earned', value: formatPoints(stats.totalEarned), icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-50' },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', stat.bg)}>
+              <stat.icon className={cn('w-5 h-5', stat.color)} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-black text-slate-900 truncate">{stat.value}</p>
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider truncate">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── HOW IT WORKS ── */}
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-5">How It Works</h3>
+        <div className="grid md:grid-cols-3 gap-6">
           {[
-            { icon: TrendingUp, label: 'Dashboard', href: '/dashboard' },
-            { icon: Gift, label: 'Referrals', href: '/dashboard/referrals', active: true },
-            { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
-            { icon: CreditCard, label: 'Withdraw', href: '/dashboard/withdraw' },
+            { step: '1', title: 'Share Your Code', desc: 'Send your unique referral code to friends' },
+            { step: '2', title: 'Friend Signs Up', desc: 'They create an account using your code' },
+            { step: '3', title: 'Earn Rewards', desc: 'Get points as soon as they sign up' },
           ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'flex items-center px-5 py-4 rounded-xl transition-all',
-                item.active 
-                  ? 'bg-primary-50 text-primary-600' 
-                  : 'text-gray-600 hover:bg-gray-50'
-              )}
-            >
-              <item.icon className="w-6 h-6" />
-              <span className="ml-4 font-medium">{item.label}</span>
-            </Link>
+            <div key={item.step} className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm flex-shrink-0 border border-indigo-100">
+                {item.step}
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-800 mb-1">{item.title}</h4>
+                <p className="text-xs text-slate-400">{item.desc}</p>
+              </div>
+            </div>
           ))}
-        </nav>
-      </aside>
+        </div>
+      </div>
 
-      <main className="flex-1">
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-5">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
-                <p className="text-gray-500">Invite friends and earn bonus points</p>
-              </div>
+      {/* ── REFERRALS LIST ── */}
+      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Your Referrals</h3>
+          <p className="text-xs text-slate-400 mt-0.5">People who joined using your code</p>
+        </div>
+
+        {referrals.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border-2 border-dashed border-slate-200">
+              <Users className="w-8 h-8 text-slate-200" />
             </div>
+            <h4 className="text-base font-bold text-slate-500 mb-1">No referrals yet</h4>
+            <p className="text-xs text-slate-300 max-w-sm">Share your referral code with friends and family to start earning bonus points!</p>
           </div>
-        </header>
-
-        <div className="p-6 lg:p-10">
-          {/* Referral Code Card */}
-          <div className="card bg-gradient-to-br from-primary-600 to-secondary-600 text-white p-10 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-2xl font-bold mb-2">Invite Friends & Earn</h3>
-                <p className="text-white/80">Share your code and earn up to 350 points per qualified referral!</p>
-              </div>
-              <Users className="w-16 h-16 text-white/30" />
-            </div>
-            
-            <div className="bg-white/20 rounded-2xl p-6 mb-6">
-              <p className="text-sm text-white/70 mb-2">Your Referral Code</p>
-              <div className="flex items-center justify-between">
-                <p className="font-mono font-bold text-3xl">{referralCode}</p>
-                <div className="flex space-x-3">
-                  <button 
-                    onClick={copyCode}
-                    className="bg-white/20 hover:bg-white/30 p-3 rounded-xl transition-colors"
-                  >
-                    {copied ? <CheckCircle className="w-6 h-6" /> : <Copy className="w-6 h-6" />}
-                  </button>
-                  <button className="bg-white/20 hover:bg-white/30 p-3 rounded-xl transition-colors">
-                    <Share2 className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold">{mockStats.totalReferrals}</p>
-                <p className="text-sm text-white/70">Total</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">{mockStats.qualifiedReferrals}</p>
-                <p className="text-sm text-white/70">Qualified</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">{mockStats.pendingReferrals}</p>
-                <p className="text-sm text-white/70">Pending</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">{formatPoints(mockStats.totalEarned)}</p>
-                <p className="text-sm text-white/70">Points Earned</p>
-              </div>
-            </div>
-          </div>
-
-          {/* How it Works */}
-          <div className="card p-8 mb-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">How It Works</h3>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="flex items-start">
-                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 font-bold mr-4">1</div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Share Your Code</h4>
-                  <p className="text-gray-500 text-sm">Share your unique referral code with friends</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 font-bold mr-4">2</div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Friend Signs Up</h4>
-                  <p className="text-gray-500 text-sm">Your friend creates an account using your code</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 font-bold mr-4">3</div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Earn Rewards</h4>
-                  <p className="text-gray-500 text-sm">Get points when they complete 3 tasks</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Referrals List */}
-          <div className="card">
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900">Your Referrals</h3>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {mockReferrals.map((ref) => (
-                <div key={ref.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600">
-                        {getInitials(ref.referred_name)}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{ref.referred_name}</p>
-                        <p className="text-sm text-gray-500">Referred on {formatDateTime(ref.created_at)}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {ref.status === 'qualified' ? (
-                        <div>
-                          <span className="badge bg-green-100 text-green-700 mb-1">Qualified</span>
-                          <p className="text-sm font-semibold text-green-600">{ref.reward_points} points earned</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <span className="badge bg-yellow-100 text-yellow-700 mb-1">Pending</span>
-                          <p className="text-sm text-gray-500">Needs 3 tasks</p>
-                        </div>
-                      )}
-                    </div>
+        ) : (
+          <div className="divide-y divide-slate-50">
+            {referrals.map((ref) => (
+              <div key={ref.id} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                    {getInitials(ref.referred_name)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-800 truncate">{ref.referred_name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Joined {formatDate(ref.created_at)}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="text-right flex-shrink-0">
+                  {ref.status === 'qualified' ? (
+                    <div>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                        <CheckCircle className="w-3 h-3" /> Qualified
+                      </span>
+                      <p className="text-xs font-bold text-emerald-600 mt-1">+{ref.reward_points} pts</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                        <Clock className="w-3 h-3" /> Pending
+                      </span>
+                      <p className="text-xs text-slate-400 mt-1">Reward processing</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </main>
+        )}
+      </div>
     </div>
   );
 }

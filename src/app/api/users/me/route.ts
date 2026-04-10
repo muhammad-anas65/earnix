@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getTodayDateString } from '@/lib/utils';
+import { getTodayDateString, generateReferralCode } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,10 +10,10 @@ const getDefaultData = (userId: string) => ({
   data: {
     user: {
       id: userId,
-      name: 'User',
+      name: 'Earnix Member',
       email: '',
       status: 'active',
-      referral_code: 'EARNIX',
+      referral_code: '...',
       plan: { display_name: 'Free', daily_task_limit: 2 }
     },
     wallet: {
@@ -77,6 +77,20 @@ export async function GET(request: NextRequest) {
         user = { ...userOnly, plan: planData };
       } else {
         console.error('[/api/users/me] User not found in DB:', userOnlyError?.message);
+      }
+    }
+
+    // ── 2a. Auto-heal missing referral code ──
+    if (user && !user.referral_code) {
+      const newCode = generateReferralCode();
+      const { data: updatedUser } = await supabaseAdmin
+        .from('users')
+        .update({ referral_code: newCode })
+        .eq('id', userId)
+        .select()
+        .single();
+      if (updatedUser) {
+        user.referral_code = newCode;
       }
     }
 

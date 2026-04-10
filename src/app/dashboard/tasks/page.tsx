@@ -17,9 +17,10 @@ interface Task {
   id: string;
   title: string;
   description: string;
-  points_min: number;
-  points_max: number;
-  task_type: string;
+  reward_points: number;
+  difficulty: string;
+  estimated_time: string;
+  type: string;
 }
 
 export default function TasksPage() {
@@ -47,32 +48,45 @@ export default function TasksPage() {
     fetchData();
   }, []);
 
-  if (isLoading || !dailyStats) {
-    return <div className="p-20 text-center animate-pulse font-bold text-slate-400">Syncing available tasks...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-12">
+        <div className="h-32 bg-slate-100 animate-pulse rounded-[3rem] w-2/3" />
+        <div className="h-64 bg-slate-100 animate-pulse rounded-[3rem]" />
+        <div className="space-y-6">
+          <div className="h-40 bg-slate-50 animate-pulse rounded-[2.5rem]" />
+          <div className="h-40 bg-slate-50 animate-pulse rounded-[2.5rem]" />
+        </div>
+      </div>
+    );
   }
 
   const dailyProgress = { 
-    completed: dailyStats.tasks_completed, 
-    limit: dailyStats.daily_limit,
-    points: dailyStats.points_earned
+    completed: dailyStats?.tasks_completed || 0, 
+    limit: dailyStats?.daily_limit || 2,
+    points: dailyStats?.points_earned || 0
   };
 
   const getTaskIcon = (type: string) => {
     const icons: Record<string, string> = {
-      survey: '📊',
-      watch: '🎬',
-      download: '📥',
-      signup: '📝',
-      click: '👆',
+      daily_checkin: '📅',
+      quiz: '❓',
+      interaction_task: '🖱️',
+      profile_completion: '👤',
+      phone_verification: '📱',
+      onboarding_task: '🌟',
+      deposit_bonus: '💰',
+      referral_milestone: '🏆',
+      custom: '🎯'
     };
-    return icons[type] || '👆';
+    return icons[type] || '🎯';
   };
 
   return (
     <div className="space-y-10 lg:space-y-16">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl lg:text-6xl font-black text-slate-900 tracking-tighter">Verified Tasks</h1>
+          <h1 className="text-3xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase">Verified Tasks</h1>
           <p className="text-slate-500 font-medium mt-2">Browse daily opportunities and secure your rewards instantly.</p>
         </div>
         <div className="flex items-center space-x-2 px-6 py-3 bg-slate-900 text-white rounded-2xl shadow-xl">
@@ -92,7 +106,7 @@ export default function TasksPage() {
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Daily Quota Utilization</span>
                </div>
-               <h2 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-none mb-4">
+               <h2 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-none mb-4 uppercase">
                   Efficiency Index
                </h2>
                <p className="text-slate-500 font-medium">
@@ -111,7 +125,7 @@ export default function TasksPage() {
             <div className="relative pt-1">
               <div className="overflow-hidden h-4 flex rounded-full bg-slate-100 ring-[12px] ring-slate-50/50">
                 <div 
-                  style={{ width: `${(dailyProgress.completed / dailyProgress.limit) * 100}%` }}
+                  style={{ width: `${Math.min((dailyProgress.completed / dailyProgress.limit) * 100, 100)}%` }}
                   className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-1000 ease-out"
                 ></div>
               </div>
@@ -133,35 +147,46 @@ export default function TasksPage() {
           {tasks.length === 0 ? (
              <div className="premium-card !p-32 text-center">
                 <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border-2 border-dashed border-slate-200">
-                   <Zap className="w-10 h-10 text-slate-200" />
+                   <Target className="w-10 h-10 text-slate-200" />
                 </div>
-                <h4 className="text-2xl font-black text-slate-900 mb-2 tracking-tight uppercase">Operational Gap</h4>
-                <p className="text-slate-400 font-medium">The task infrastructure is currently refreshing. Stand by for new blocks.</p>
+                <h4 className="text-2xl font-black text-slate-900 mb-2 tracking-tight uppercase">
+                   {dailyProgress.completed >= dailyProgress.limit 
+                     ? "Daily Quota Reached" 
+                     : "No Tasks Available"}
+                </h4>
+                <p className="text-slate-400 font-medium max-w-sm mx-auto">
+                   {dailyProgress.completed >= dailyProgress.limit 
+                     ? "You have successfully completed your tasks for today. Return tomorrow for a fresh quota." 
+                     : "There are no new tasks in your segment at the moment. Please check back shortly for updates."}
+                </p>
              </div>
           ) : tasks.map((task) => (
-            <div key={task.id} className="premium-card group !p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-8 hover:bg-slate-900 hover:text-white transition-all duration-700">
+            <div key={task.id} className="premium-card group !p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-8 hover:bg-slate-950 hover:text-white transition-all duration-500">
               <div className="flex items-start lg:items-center space-x-8">
-                <div className="w-20 h-20 bg-slate-100 rounded-[2rem] flex items-center justify-center text-4xl shadow-sm group-hover:bg-white/10 group-hover:scale-110 transition-all duration-500 shrink-0">
-                  {getTaskIcon(task.task_type)}
+                <div className="w-24 h-24 bg-slate-100 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-sm group-hover:bg-white/10 group-hover:scale-105 transition-all duration-500 shrink-0">
+                  {getTaskIcon(task.type)}
                 </div>
                 <div>
-                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
                     <span className="px-3 py-1 bg-indigo-50 group-hover:bg-indigo-600 rounded-lg text-indigo-600 group-hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">
-                       {task.task_type} SEGMENT
+                       {task.type.replace('_', ' ')}
                     </span>
-                    <span className="px-3 py-1 bg-amber-50 group-hover:bg-amber-500 rounded-lg text-amber-600 group-hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">
-                       MAX YIELD: {task.points_max} PTS
+                    <span className="px-3 py-1 bg-emerald-50 group-hover:bg-emerald-600 rounded-lg text-emerald-600 group-hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">
+                       REWARD: {task.reward_points} PTS
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 group-hover:bg-white/10 rounded-lg text-slate-500 group-hover:text-slate-300 text-[10px] font-black uppercase tracking-widest transition-colors">
+                       {task.difficulty} • {task.estimated_time}
                     </span>
                   </div>
-                  <h3 className="font-black text-2xl tracking-tight mb-2 uppercase">{task.title}</h3>
+                  <h3 className="font-black text-3xl tracking-tight mb-3 uppercase">{task.title}</h3>
                   <p className="text-slate-500 group-hover:text-slate-400 font-medium max-w-xl text-lg leading-relaxed">{task.description}</p>
                 </div>
               </div>
               <Link 
                 href={`/dashboard/tasks/${task.id}`} 
-                className="btn-premium py-6 px-12 text-sm shadow-none group-hover:bg-white group-hover:text-slate-900 transition-all active:scale-95"
+                className="bg-slate-900 group-hover:bg-white text-white group-hover:text-slate-900 py-6 px-14 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-slate-200 group-hover:shadow-none transition-all active:scale-95 flex items-center shrink-0"
               >
-                EXECUTE <ArrowRight className="w-5 h-5 ml-4" />
+                EXECUTE <ArrowRight className="w-4 h-4 ml-4" />
               </Link>
             </div>
           ))}

@@ -97,7 +97,42 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const userReferralCode = generateReferralCode();
+    // --- Generate UNIQUE Referral Code ---
+    let userReferralCode = '';
+    let isCodeUnique = false;
+    let attempts = 0;
+    
+    while (!isCodeUnique && attempts < 5) {
+      userReferralCode = generateReferralCode();
+      const { data: existingCode } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('referral_code', userReferralCode)
+        .maybeSingle();
+      
+      if (!existingCode) isCodeUnique = true;
+      attempts++;
+    }
+    // -------------------------------------
+
+    // --- Fraud Detection: IP Check ---
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    
+    if (referredById) {
+      const { data: referrerIP } = await supabaseAdmin
+        .from('users')
+        .select('last_login_ip')
+        .eq('id', referredById)
+        .maybeSingle();
+      
+      if (referrerIP?.last_login_ip === ip && ip !== 'unknown') {
+         AdminAlertService.suspiciousActivity({ name: name, email: email }, { 
+            type: 'Device Fingerprint Match', 
+            risk: 'MEDIUM', 
+            reason: 'Same IP used for both referrer and referred user' 
+         });
+      }
+    }
 
     const isFreePlan = plan.price === 0;
     const userStatus = isFreePlan ? 'active' : 'pending';
@@ -114,6 +149,7 @@ export async function POST(request: NextRequest) {
         referral_code: userReferralCode,
         referred_by: referredById,
         status: userStatus,
+        last_login_ip: ip,
       })
       .select()
       .single();
@@ -144,6 +180,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (referredById) {
+      // 1. Create the referral record as 'pending' (Default qualification logic)
       const { error: refError } = await supabaseAdmin.from('referrals').insert({
         referrer_id: referredById,
         referred_id: newUser.id,
@@ -152,6 +189,15 @@ export async function POST(request: NextRequest) {
         reward_sent: false,
         reward_points: plan.referral_reward || 0,
       });
+
+      // Notify the referrer that someone joined
+      await supabaseAdmin.from('notifications').insert({
+        user_id: referredById,
+        title: 'New Member Referred! 🤝',
+        body: ` Someone just joined using your link. You'll get ${plan.referral_reward || 0} points once they complete 3 tasks!`,
+        type: 'referral',
+      });
+
       if (refError) console.error('Referral record error:', refError);
     }
 

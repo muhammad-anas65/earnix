@@ -113,10 +113,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 4: Update last login timestamp
+    // Step 4: Update last login timestamp and IP
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
     await supabaseAdmin
       .from('users')
-      .update({ last_login_at: new Date().toISOString() })
+      .update({ 
+        last_login_at: new Date().toISOString(),
+        last_login_ip: ip
+      })
       .eq('id', user.id);
 
     // Remove sensitive field
