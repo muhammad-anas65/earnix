@@ -116,6 +116,21 @@ export async function GET(request: NextRequest) {
       .eq('date', today)
       .single();
 
+    // ── 6. Fetch referral count ──
+    const { count: referralCount } = await supabaseAdmin
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('referred_by', userId);
+
+    // ── 7. Calculate Global Rank (Better way: total earned points index) ──
+    // Simply count how many people have more points (performance intensive? maybe ok for now)
+    const { count: higherRanked } = await supabaseAdmin
+        .from('wallets')
+        .select('*', { count: 'exact', head: true })
+        .gt('total_earned', wallet?.total_earned || 0);
+
+    const globalRank = (higherRanked || 0) + 1;
+
     return NextResponse.json({
       success: true,
       data: {
@@ -125,7 +140,9 @@ export async function GET(request: NextRequest) {
           tasks_completed: dailyLog?.tasks_completed || 0,
           points_earned: dailyLog?.points_earned || 0,
           daily_limit: user.plan?.daily_task_limit || 2,
-        }
+        },
+        referralCount: referralCount || 0,
+        globalRank
       }
     });
 

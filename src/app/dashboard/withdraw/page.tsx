@@ -30,20 +30,51 @@ export default function WithdrawPage() {
     fetchData();
   }, []);
 
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
+
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
+
+    if (!recipientName || !recipientPhone) {
+      toast.error('Recipient contact details are required');
+      return;
+    }
     
     setWithdrawing(true);
-    // Simulate API call for now or connect to real endpoint if it exists
-    setTimeout(() => {
-      toast.success('Withdrawal request submitted for approval!');
+    try {
+      const resp = await fetch('/api/withdrawals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          method,
+          recipientName,
+          recipientPhone,
+        }),
+      });
+
+      const result = await resp.json();
+      if (result.success) {
+        toast.success('Withdrawal request submitted for approval!');
+        setAmount('');
+        setRecipientName('');
+        setRecipientPhone('');
+        fetchData(); // Refresh wallet balance
+      } else {
+        toast.error(result.error || 'Failed to submit withdrawal');
+      }
+    } catch (err) {
+      toast.error('Connection error. Please try again.');
+    } finally {
       setWithdrawing(false);
-      setAmount('');
-    }, 2000);
+    }
   };
 
   if (loading || !wallet) {
@@ -113,6 +144,29 @@ export default function WithdrawPage() {
                     </div>
                  </div>
 
+                 <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Account Holder Name</label>
+                       <input 
+                         type="text" 
+                         placeholder="Full Name on Account" 
+                         value={recipientName}
+                         onChange={(e) => setRecipientName(e.target.value)}
+                         className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-800 transition-all outline-none"
+                       />
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Account Number / Phone</label>
+                       <input 
+                         type="text" 
+                         placeholder="03xxxxxxxxx" 
+                         value={recipientPhone}
+                         onChange={(e) => setRecipientPhone(e.target.value)}
+                         className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-800 transition-all outline-none"
+                       />
+                    </div>
+                 </div>
+
                  {pointsToWithdraw > 0 && (
                     <div className="p-6 bg-slate-900 rounded-3xl text-white flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-500">
                        <div>
@@ -129,6 +183,7 @@ export default function WithdrawPage() {
                  >
                     {withdrawing ? 'PROCESSING...' : wallet.available_points < minWithdrawal ? `MIN. LIMIT: ${formatPoints(minWithdrawal)} PTS` : 'CONFIRM WITHDRAWAL'}
                  </button>
+
               </form>
            </div>
         </div>

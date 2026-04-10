@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [wallet, setWallet] = useState<any>(null);
   const [dailyStats, setDailyStats] = useState<any>(null);
+  const [extraStats, setExtraStats] = useState<any>({ referralCount: 0, globalRank: 1 });
   const [error, setError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +60,10 @@ export default function DashboardPage() {
         setUser(result.data.user);
         setWallet(result.data.wallet);
         setDailyStats(result.data.dailyStats);
+        setExtraStats({
+          referralCount: result.data.referralCount || 0,
+          globalRank: result.data.globalRank || 1
+        });
       } else {
         throw new Error(result.error || 'Authentication error');
       }
@@ -203,8 +208,8 @@ export default function DashboardPage() {
         {[
           { label: 'Today\'s Tasks', value: `${dailyStats?.tasks_completed || 0}/${dailyStats?.daily_limit || 2}`, icon: Target, color: 'text-indigo-600', bg: 'bg-indigo-50' },
           { label: 'Points Today', value: formatPoints(dailyStats?.points_earned || 0), icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Global Rank', value: '#1,204', icon: Award, color: 'text-violet-600', bg: 'bg-violet-50' },
-          { label: 'Active Referrals', value: '0', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Global Rank', value: `#${extraStats.globalRank}`, icon: Award, color: 'text-violet-600', bg: 'bg-violet-50' },
+          { label: 'Active Referrals', value: `${extraStats.referralCount}`, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         ].map((stat, i) => (
           <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', stat.bg)}>

@@ -23,25 +23,12 @@ import {
 import { cn, formatCurrency, formatPoints } from '@/lib/utils';
 import UserActions from '@/components/admin/UserActions';
 
-const STAT_CONFIGS = [
-  { title: 'Total Users', value: '1,240', change: 12.5, icon: Users, gradient: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', iconColor: 'text-blue-600' },
-  { title: 'Active Users', value: '850', change: 8.2, icon: Activity, gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-  { title: 'Pending Approvals', value: 0, change: 0, icon: Clock, gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50', iconColor: 'text-amber-600' },
-  { title: 'Total Points', value: '1.2M', change: 18.3, icon: Coins, gradient: 'from-violet-500 to-purple-600', bg: 'bg-violet-50', iconColor: 'text-violet-600' },
-  { title: 'Withdrawals', value: '₨ 12.5k', change: -5.2, icon: Wallet, gradient: 'from-rose-500 to-red-600', bg: 'bg-rose-50', iconColor: 'text-rose-600' },
-  { title: 'Revenue (Month)', value: '₨ 250k', change: 22.1, icon: DollarSign, gradient: 'from-teal-500 to-cyan-600', bg: 'bg-teal-50', iconColor: 'text-teal-600' },
-];
 
-const AUX_METRICS = [
-  { label: 'New Users (7d)', value: '+234', icon: UserPlus, trend: '+15.2%', up: true },
-  { label: 'Tasks Done', value: '12.4k', icon: Target, trend: '+8.4%', up: true },
-  { label: 'Points Issued', value: '1.2M', icon: Gift, trend: '+12.1%', up: true },
-  { label: 'Conversion', value: '68%', icon: ShieldCheck, trend: '+3.2%', up: true },
-];
+
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState(STAT_CONFIGS);
+  const [stats, setStats] = useState<any>(null);
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
   const [recentWithdrawals, setRecentWithdrawals] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -53,26 +40,29 @@ export default function AdminDashboardPage() {
     else setIsRefreshing(true);
     setError(null);
     try {
+      // 1. Fetch Stats
+      const statsResp = await fetch('/api/admin/stats');
+      const statsResult = await statsResp.json();
+      
+      // 2. Fetch Pending Users
       const usersResp = await fetch('/api/admin/users?status=pending');
-      if (!usersResp.ok) throw new Error('Failed to fetch dashboard data');
       const usersResult = await usersResp.json();
       
-      const pending = usersResult.success && Array.isArray(usersResult.data)
-        ? usersResult.data.slice(0, 5)
-        : [];
-      
-      setPendingApprovals(pending);
+      // 3. Fetch Recent Withdrawals
+      const withdrawalsResp = await fetch('/api/admin/withdrawals');
+      const withdrawalsResult = await withdrawalsResp.json();
 
-      setStats(prev => prev.map(s => 
-        s.title === 'Pending Approvals' 
-          ? { ...s, value: pending.length }
-          : s
-      ));
+      if (statsResult.success) {
+        setStats(statsResult.data);
+      }
 
-      setRecentWithdrawals([
-        { id: '1', user: 'John Doe', amount: 5000, method: 'easypaisa', status: 'pending', created_at: '2024-01-20' },
-        { id: '2', user: 'Jane Smith', amount: 3000, method: 'jazzcash', status: 'approved', created_at: '2024-01-20' },
-      ]);
+      if (usersResult.success) {
+        setPendingApprovals(Array.isArray(usersResult.data) ? usersResult.data.slice(0, 5) : []);
+      }
+
+      if (withdrawalsResult.success) {
+        setRecentWithdrawals(Array.isArray(withdrawalsResult.data) ? withdrawalsResult.data.slice(0, 5) : []);
+      }
 
     } catch (err: any) {
       console.error('Admin dashboard fetch error:', err);
@@ -86,6 +76,20 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const STAT_CONFIGS = stats ? [
+    { title: 'Total Users', value: stats.totalUsers, change: stats.deltas.users, icon: Users, bg: 'bg-blue-50', iconColor: 'text-blue-600' },
+    { title: 'Active Users', value: stats.activeUsers, change: 0, icon: Activity, bg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+    { title: 'Pending Approvals', value: stats.pendingUsers, change: 0, icon: Clock, bg: 'bg-amber-50', iconColor: 'text-amber-600' },
+    { title: 'Points Global', value: formatPoints(stats.totalPoints), change: stats.deltas.points, icon: Coins, bg: 'bg-violet-50', iconColor: 'text-violet-600' },
+    { title: 'Withdrawals', value: formatCurrency(stats.totalWithdrawals), change: 0, icon: Wallet, bg: 'bg-rose-50', iconColor: 'text-rose-600' },
+    { title: 'Revenue Total', value: formatCurrency(stats.totalRevenue), change: stats.deltas.revenue, icon: DollarSign, bg: 'bg-teal-50', iconColor: 'text-teal-600' },
+  ] : [];
+
+  const AUX_METRICS = stats ? [
+    { label: 'Active Tasks', value: formatPoints(stats.tasksDone), icon: Target, trend: '+8.4%', up: true },
+    { label: 'Conversion Rate', value: '100%', icon: ShieldCheck, trend: '+0.0%', up: true },
+  ] : [];
 
   if (isLoading) {
     return (

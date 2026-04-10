@@ -11,12 +11,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Return mock admin data gracefully if DB is not configured
     if (!supabaseAdmin) {
-      return NextResponse.json({
-        success: true,
-        data: { id: adminId, email: 'admin@earnix.com', name: 'Administrator' }
-      });
+       return NextResponse.json({ success: false, error: 'Database connection failure' }, { status: 503 });
     }
 
     const { data: admin, error } = await supabaseAdmin
