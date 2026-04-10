@@ -207,7 +207,7 @@ export default function HomePage() {
               <p className="text-lg text-slate-500 font-medium">Earnix combines state-of-the-art security with a clean user experience to give you the platform you deserve.</p>
             </div>
             <Link href="/signup" className="group flex items-center text-sm font-black text-indigo-600 uppercase tracking-widest">
-              Join the ecosystem <div className="ml-4 w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all"><ArrowRight className="w-5 h-5"/></div>
+              Join the community <div className="ml-4 w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all"><ArrowRight className="w-5 h-5"/></div>
             </Link>
           </div>
           

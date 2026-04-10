@@ -82,22 +82,22 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="premium-card !p-10 lg:!p-20 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)]">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl lg:text-6xl font-black text-slate-900 mb-4 tracking-tighter">Access <span className="text-gradient">Portal.</span></h1>
-            <p className="text-slate-500 font-medium text-lg">Re-establish your operational presence.</p>
+        <div className="premium-card !p-8 md:!p-12 lg:!p-20 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)]">
+          <div className="text-center mb-12 lg:mb-16">
+            <h1 className="text-3xl md:text-4xl lg:text-6xl font-black text-slate-900 mb-4 tracking-tighter">Welcome <span className="text-gradient">Back.</span></h1>
+            <p className="text-slate-500 font-medium text-base lg:text-lg">Sign in to manage your earnings and tasks.</p>
           </div>
           
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Authorization Channel</label>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 lg:space-y-10">
+            <div className="space-y-3 lg:space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-6 lg:h-6 text-slate-400" />
                 <input
                   {...register('email')}
                   type="email"
-                  className={cn('w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all text-lg', errors.email && 'border-red-500 ring-red-50')}
-                  placeholder="your@access.email"
+                  className={cn('w-full pl-14 lg:pl-16 pr-6 py-5 lg:py-6 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all text-base lg:text-lg', errors.email && 'border-red-500 ring-red-50')}
+                  placeholder="name@example.com"
                 />
               </div>
               {errors.email && (
@@ -105,22 +105,22 @@ export default function LoginPage() {
               )}
             </div>
             
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Passphrase Decryption</label>
+            <div className="space-y-3 lg:space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Your Password</label>
               <div className="relative">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-6 lg:h-6 text-slate-400" />
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  className={cn('w-full pl-16 pr-16 py-6 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all text-lg', errors.password && 'border-red-500 ring-red-50')}
-                  placeholder="Your Secure Key"
+                  className={cn('w-full pl-14 lg:pl-16 pr-14 lg:pr-16 py-5 lg:py-6 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-50 outline-none font-bold text-slate-900 transition-all text-base lg:text-lg', errors.password && 'border-red-500 ring-red-50')}
+                  placeholder="Your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+                  {showPassword ? <EyeOff className="w-5 h-5 lg:w-6 lg:h-6" /> : <Eye className="w-5 h-5 lg:w-6 lg:h-6" />}
                 </button>
               </div>
               {errors.password && (
@@ -132,13 +132,13 @@ export default function LoginPage() {
               <label className="flex items-center group cursor-pointer">
                 <div className="relative">
                    <input type="checkbox" className="sr-only peer" />
-                   <div className="w-6 h-6 bg-slate-100 border border-slate-200 rounded-lg peer-checked:bg-slate-900 peer-checked:border-slate-900 transition-all"></div>
-                   <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                   <div className="w-5 h-5 lg:w-6 lg:h-6 bg-slate-100 border border-slate-200 rounded-lg peer-checked:bg-slate-900 peer-checked:border-slate-900 transition-all"></div>
+                   <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 lg:w-4 lg:h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
-                <span className="ml-3 text-xs font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">Persistence Mode</span>
+                <span className="ml-3 text-[10px] lg:text-xs font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">Remember me</span>
               </label>
               <Link href="/forgot-password" className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">
-                Recovery Needed?
+                Forgot Password?
               </Link>
             </div>
             
@@ -147,15 +147,15 @@ export default function LoginPage() {
                 type="submit"
                 disabled={isLoading}
                 className={cn(
-                  'w-full py-7 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-2xl active:scale-[0.98]',
+                  'w-full py-5 lg:py-7 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-2xl active:scale-[0.98]',
                   isLoading ? 'bg-slate-200 text-slate-400' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
                 )}
               >
-                {isLoading ? 'SYNCING SESSION...' : 'AUTHENTICATE SESSION'}
+                {isLoading ? 'SIGNING IN...' : 'SIGN IN'}
               </button>
               
-              <p className="text-center text-slate-400 font-bold text-xs mt-12 uppercase tracking-widest">
-                New to the ecosystem? <Link href="/signup" className="text-indigo-600 hover:underline">Register Node</Link>
+              <p className="text-center text-slate-400 font-bold text-[10px] lg:text-xs mt-10 lg:mt-12 uppercase tracking-widest">
+                Don't have an account? <Link href="/signup" className="text-indigo-600 hover:underline">Create Account</Link>
               </p>
             </div>
           </form>
