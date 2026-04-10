@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Toaster } from 'react-hot-toast';
+import { createClient as createSupabaseBrowserClient } from '@/utils/supabase/client';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -72,8 +73,23 @@ export default function UserDashboardLayout({
   }, [router, pathname]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
+    try {
+      // Clear client-side Supabase auth session
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('Client sign-out error:', e);
+    }
+
+    try {
+      // Clear server-side session cookie
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Server logout error:', e);
+    }
+
+    // Hard redirect to clear all in-memory state
+    window.location.href = '/login';
   };
 
   if (loading) {

@@ -46,7 +46,31 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      // User exists in Supabase Auth but not in the users table yet.
+      // Return safe defaults so the dashboard doesn't crash.
+      return NextResponse.json({
+        success: true,
+        data: {
+          user: {
+            id: userId,
+            name: 'User',
+            email: '',
+            status: 'active',
+            referral_code: 'EARNIX',
+            plan: { display_name: 'Free', daily_task_limit: 2 }
+          },
+          wallet: {
+            available_points: 0,
+            pending_points: 0,
+            total_earned: 0
+          },
+          dailyStats: {
+            tasks_completed: 0,
+            points_earned: 0,
+            daily_limit: 2,
+          }
+        }
+      });
     }
 
     const { data: wallet } = await supabaseAdmin
