@@ -10,12 +10,21 @@ import {
   ArrowLeft, 
   Upload, 
   CheckCircle, 
+  Check,
   CreditCard,
   Smartphone,
   FileText,
   Shield,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  Eye,
+  EyeOff,
+  Gift,
+  Zap
 } from 'lucide-react';
 import { cn, DEFAULT_PLANS } from '@/lib/utils';
 import { useAppStore } from '@/lib/store';
