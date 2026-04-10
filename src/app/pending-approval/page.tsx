@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Clock, CheckCircle, CreditCard, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 export default function PendingApprovalPage() {
   const router = useRouter();
