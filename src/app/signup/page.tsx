@@ -116,9 +116,10 @@ function SignupContent() {
         toast.success('Account created successfully!');
         console.log('Plan price:', selectedPlan.price, 'Redirecting to:', selectedPlan.price > 0 ? '/payment' : '/dashboard');
         if (selectedPlan.price > 0) {
-          router.push('/payment');
+          // Force page reload to ensure session cookie is set before middleware check
+          window.location.href = '/payment';
         } else {
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
         }
       } else {
         toast.error(result.error || 'Failed to create account');
