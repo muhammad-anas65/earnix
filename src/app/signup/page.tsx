@@ -112,7 +112,7 @@ function SignupContent() {
         if (selectedPlan.price > 0) {
           router.push('/payment');
         } else {
-          router.push('/pending-approval');
+          router.push('/dashboard');
         }
       } else {
         toast.error(result.error || 'Failed to create account');
