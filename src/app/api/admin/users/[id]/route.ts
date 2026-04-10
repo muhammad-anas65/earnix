@@ -12,11 +12,17 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
     }
 
-    // 1. Delete associated data first (to avoid FK constraints if not cascading)
-    // Wallets, Notifications, Referrals, tasks etc.
-    // In a robust system, these would be cascaded in Postgres.
+    // Delete all associated data first
+    await supabaseAdmin.from('wallets').delete().eq('user_id', userId);
+    await supabaseAdmin.from('notifications').delete().eq('user_id', userId);
+    await supabaseAdmin.from('referrals').delete().eq('referrer_id', userId);
+    await supabaseAdmin.from('referrals').delete().eq('referred_id', userId);
+    await supabaseAdmin.from('payment_submissions').delete().eq('user_id', userId);
+    await supabaseAdmin.from('task_submissions').delete().eq('user_id', userId);
+    await supabaseAdmin.from('withdrawals').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_tasks').delete().eq('user_id', userId);
     
-    // 2. Delete the user profile from public.users
+    // Delete the user profile from public.users
     const { error: profileError } = await supabaseAdmin
       .from('users')
       .delete()
@@ -26,13 +32,11 @@ export async function DELETE(
       throw profileError;
     }
 
-    // 3. Optional: Delete from Supabase Auth
-    // Note: This requires the SERVICE_ROLE_KEY to be configured in supabaseAdmin
+    // Delete from Supabase Auth
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
     
     if (authError) {
       console.warn('User deleted from DB but failed to delete from Auth:', authError.message);
-      // We don't throw here because the main record is gone, but we log it.
     }
 
     return NextResponse.json({
