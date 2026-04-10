@@ -48,9 +48,9 @@ export default function LoginPage() {
       const result = await response.json();
       
       if (result.success) {
-        toast.success('Login successful!');
+        toast.success('Welcome back!');
         
-        if (result.data.status === 'pending') {
+        if (result.data?.user?.status === 'pending') {
           router.push('/pending-approval');
         } else {
           router.push('/dashboard');
