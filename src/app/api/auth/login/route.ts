@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       .from('users')
       .update({ 
         last_login_at: new Date().toISOString(),
-        last_login_ip: ip
+        ip_address: ip
       })
       .eq('id', user.id);
 

@@ -121,11 +121,11 @@ export async function POST(request: NextRequest) {
     if (referredById) {
       const { data: referrerIP } = await supabaseAdmin
         .from('users')
-        .select('last_login_ip')
+        .select('ip_address')
         .eq('id', referredById)
         .maybeSingle();
       
-      if (referrerIP?.last_login_ip === ip && ip !== 'unknown') {
+      if (referrerIP?.ip_address === ip && ip !== 'unknown') {
          AdminAlertService.suspiciousActivity({ name: name, email: email }, { 
             type: 'Device Fingerprint Match', 
             risk: 'MEDIUM', 
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
         referral_code: userReferralCode,
         referred_by: referredById,
         status: userStatus,
-        last_login_ip: ip,
+        ip_address: ip,
       })
       .select()
       .single();
