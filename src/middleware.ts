@@ -1,102 +1,138 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from './lib/auth';
-import { updateSession } from './utils/supabase/middleware';
+import { createServerClient } from '@supabase/ssr';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const protectedPaths = ['/dashboard', '/api/users', '/api/tasks', '/api/wallet', '/api/withdrawals', '/api/payments'];
-  const authPaths = ['/login', '/signup', '/forgot-password'];
+  const authPaths   = ['/login', '/signup', '/forgot-password'];
+  const isUserPath  = pathname.startsWith('/dashboard') || pathname === '/payment' || pathname === '/pending-approval';
+  const isAdminPath = pathname.startsWith('/admin');
+  const isApiPath   = pathname.startsWith('/api/');
 
-  const { supabaseResponse, user } = await updateSession(request);
-  
-  const sessionToken = request.cookies.get('session')?.value;
+  // ── START with a mutable copy of the request headers ──────────────────────
+  const requestHeaders = new Headers(request.headers);
+
+  // ── BUILD supabase response so cookies are refreshed ──────────────────────
+  let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
+
+  let supabaseUser: { id: string; user_metadata: Record<string, any> } | null = null;
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseKey, {
+        cookies: {
+          getAll() { return request.cookies.getAll(); },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => requestHeaders.set(`cookie`, `${name}=${value}`));
+            supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
+        },
+      });
+      const { data: { user } } = await supabase.auth.getUser();
+      supabaseUser = user as any;
+    } catch {
+      // Supabase not configured — continue without session
+    }
+  }
+
+  // ── LEGACY session cookie (admin JWT) ─────────────────────────────────────
+  const sessionToken  = request.cookies.get('session')?.value;
   const legacySession = sessionToken ? await verifySession(sessionToken) : null;
 
-  const isAdmin = legacySession?.role === 'admin';
-  const isAuthUser = !!user;
-  const currentUserId = user?.id || legacySession?.userId;
+  const isAdmin    = legacySession?.role === 'admin';
+  const isAuthUser = !!supabaseUser;
+  const currentUserId = supabaseUser?.id || legacySession?.userId;
 
+  // ── HELPER: redirect while preserving refreshed cookies ───────────────────
   const redirectTo = (url: string) => {
     const res = NextResponse.redirect(new URL(url, request.url));
-    supabaseResponse.headers.forEach((value, key) => {
-      res.headers.append(key, value);
-    });
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...opts }) =>
+      res.cookies.set(name, value, opts as any)
+    );
     return res;
   };
 
-  const isUserPath = pathname.startsWith('/dashboard') || pathname === '/payment' || pathname === '/pending-approval';
-  const isAdminPath = pathname.startsWith('/admin');
-
-  // API Route Protection
-  if (pathname.startsWith('/api/') && 
-      !pathname.startsWith('/api/auth/') && 
-      !pathname.startsWith('/api/admin/login') && 
-      !pathname.startsWith('/api/admin/register')) {
-    
-    // Admin API access - requires isAdmin
+  // ─────────────────────────────────────────────────────────────────────────
+  // API ROUTE PROTECTION
+  // ─────────────────────────────────────────────────────────────────────────
+  if (
+    isApiPath &&
+    !pathname.startsWith('/api/auth/') &&
+    !pathname.startsWith('/api/admin/login') &&
+    !pathname.startsWith('/api/admin/register')
+  ) {
+    // Admin-only API
     if (pathname.startsWith('/api/admin/') && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Unauthorized: Admin Only' }, { status: 403 });
     }
 
-    // Standard User API access - requires isAuthUser
+    // User API — must be logged in via Supabase or legacy admin session
     if (!pathname.startsWith('/api/admin/') && !isAuthUser && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
 
-  // User Dashboard Boundary
+  // ─────────────────────────────────────────────────────────────────────────
+  // USER DASHBOARD BOUNDARY
+  // ─────────────────────────────────────────────────────────────────────────
   if (isUserPath) {
-    if (!isAuthUser) {
-      return redirectTo('/login');
-    }
+    if (!isAuthUser) return redirectTo('/login');
 
-    const { status } = user.user_metadata;
+    const status = supabaseUser?.user_metadata?.status;
 
-    // Strict block: Admin cannot perform user tasks in user UI by default to avoid mixing
-    if (isAdmin && !isAuthUser) {
-      return redirectTo('/admin');
-    }
-
-    // Pending User Logic
     if (status === 'pending') {
-      if (pathname.startsWith('/dashboard')) {
-        return redirectTo('/pending-approval');
-      }
+      if (pathname.startsWith('/dashboard')) return redirectTo('/pending-approval');
     } else if (status === 'active') {
-      if (pathname === '/pending-approval' || pathname === '/payment') {
-        return redirectTo('/dashboard');
-      }
+      if (pathname === '/pending-approval' || pathname === '/payment') return redirectTo('/dashboard');
     }
   }
 
-  // Admin Dashboard Boundary
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADMIN DASHBOARD BOUNDARY
+  // ─────────────────────────────────────────────────────────────────────────
   if (isAdminPath) {
     if (pathname === '/admin/login' || pathname === '/admin/register') {
-      if (isAdmin) {
-        return redirectTo('/admin');
-      }
+      if (isAdmin) return redirectTo('/admin');
       return supabaseResponse;
     }
-
-    if (!isAdmin) {
-      // If they are a normal user, don't let them see admin login either if they try to hack
-      return redirectTo('/admin/login');
-    }
+    if (!isAdmin) return redirectTo('/admin/login');
   }
 
-  // Auth Path Protection
-  if (authPaths.some(path => pathname.startsWith(path))) {
-    if (isAuthUser) {
-      return redirectTo('/dashboard');
-    }
-    if (isAdmin) {
-      return redirectTo('/admin');
-    }
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTH PATH PROTECTION (already logged in)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (authPaths.some(p => pathname.startsWith(p))) {
+    if (isAuthUser) return redirectTo('/dashboard');
+    if (isAdmin)    return redirectTo('/admin');
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // FORWARD userId TO API ROUTE HANDLERS via REQUEST header
+  // This is the critical fix: we inject into the *request* headers so that
+  // route.ts files can read it with request.headers.get('x-user-id').
+  // ─────────────────────────────────────────────────────────────────────────
   if (currentUserId) {
-    supabaseResponse.headers.set('x-user-id', currentUserId);
+    // Build a brand-new response that passes the modified request headers
+    const headersWithUserId = new Headers(requestHeaders);
+    headersWithUserId.set('x-user-id', currentUserId);
+
+    const finalResponse = NextResponse.next({ request: { headers: headersWithUserId } });
+
+    // Copy any auth cookies from supabaseResponse into the final response
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...opts }) =>
+      finalResponse.cookies.set(name, value, opts as any)
+    );
+
+    return finalResponse;
   }
 
   return supabaseResponse;
@@ -110,6 +146,6 @@ export const config = {
     '/login',
     '/signup',
     '/payment',
-    '/pending-approval'
+    '/pending-approval',
   ],
 };

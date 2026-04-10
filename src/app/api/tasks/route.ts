@@ -15,6 +15,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Return empty tasks gracefully if DB is not configured
+    if (!supabaseAdmin) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          tasks: [],
+          dailyStats: { tasks_completed: 0, points_earned: 0, daily_limit: 2, limit_reached: false },
+          plan: null,
+        },
+      });
+    }
+
     const { data: user } = await supabaseAdmin
       .from('users')
       .select('*, plan:plans(*)')

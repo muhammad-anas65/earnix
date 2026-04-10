@@ -5,63 +5,73 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Users, 
-  CreditCard, 
   Wallet,
   TrendingUp,
   ArrowUpRight,
-  ArrowDownRight,
   Clock,
   CheckCircle,
-  XCircle,
   Target,
   Gift,
   DollarSign,
   UserPlus,
-  Activity
+  Activity,
+  BarChart2,
+  RefreshCw,
+  Coins,
+  ShieldCheck
 } from 'lucide-react';
-import { 
-  cn, 
-  formatCurrency, 
-  formatPoints, 
-  formatDateTime, 
-  getInitials 
-} from '@/lib/utils';
+import { cn, formatCurrency, formatPoints } from '@/lib/utils';
 import UserActions from '@/components/admin/UserActions';
+
+const STAT_CONFIGS = [
+  { title: 'Total Users', value: '1,240', change: 12.5, icon: Users, gradient: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', iconColor: 'text-blue-600' },
+  { title: 'Active Users', value: '850', change: 8.2, icon: Activity, gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+  { title: 'Pending Approvals', value: 0, change: 0, icon: Clock, gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50', iconColor: 'text-amber-600' },
+  { title: 'Total Points', value: '1.2M', change: 18.3, icon: Coins, gradient: 'from-violet-500 to-purple-600', bg: 'bg-violet-50', iconColor: 'text-violet-600' },
+  { title: 'Withdrawals', value: '₨ 12.5k', change: -5.2, icon: Wallet, gradient: 'from-rose-500 to-red-600', bg: 'bg-rose-50', iconColor: 'text-rose-600' },
+  { title: 'Revenue (Month)', value: '₨ 250k', change: 22.1, icon: DollarSign, gradient: 'from-teal-500 to-cyan-600', bg: 'bg-teal-50', iconColor: 'text-teal-600' },
+];
+
+const AUX_METRICS = [
+  { label: 'New Users (7d)', value: '+234', icon: UserPlus, trend: '+15.2%', up: true },
+  { label: 'Tasks Done', value: '12.4k', icon: Target, trend: '+8.4%', up: true },
+  { label: 'Points Issued', value: '1.2M', icon: Gift, trend: '+12.1%', up: true },
+  { label: 'Conversion', value: '68%', icon: ShieldCheck, trend: '+3.2%', up: true },
+];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<any[]>([]);
+  const [stats, setStats] = useState(STAT_CONFIGS);
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
   const [recentWithdrawals, setRecentWithdrawals] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
+  const fetchDashboardData = async (silent = false) => {
+    if (!silent) setIsLoading(true);
+    else setIsRefreshing(true);
     setError(null);
     try {
       const usersResp = await fetch('/api/admin/users?status=pending');
       if (!usersResp.ok) throw new Error('Failed to fetch dashboard data');
       const usersResult = await usersResp.json();
       
-      if (usersResult.success && Array.isArray(usersResult.data)) {
-        setPendingApprovals(usersResult.data.slice(0, 5));
-      } else {
-        setPendingApprovals([]);
-      }
+      const pending = usersResult.success && Array.isArray(usersResult.data)
+        ? usersResult.data.slice(0, 5)
+        : [];
+      
+      setPendingApprovals(pending);
 
-      setStats([
-        { title: 'Total Users', value: '1,240', change: 12.5, icon: Users, color: 'bg-blue-500' },
-        { title: 'Active Users', value: '850', change: 8.2, icon: Activity, color: 'bg-green-500' },
-        { title: 'Pending Approvals', value: usersResult.data?.length || 0, change: 0, icon: Clock, color: 'bg-yellow-500' },
-        { title: 'Total Points Issued', value: '1.2M', change: 18.3, icon: Target, color: 'bg-purple-500' },
-        { title: 'Withdrawals Today', value: '₨ 12,500', change: -5.2, icon: Wallet, color: 'bg-red-500' },
-        { title: 'Revenue (Month)', value: '₨ 250k', change: 22.1, icon: DollarSign, color: 'bg-indigo-500' },
-      ]);
+      setStats(prev => prev.map(s => 
+        s.title === 'Pending Approvals' 
+          ? { ...s, value: pending.length }
+          : s
+      ));
 
       setRecentWithdrawals([
-        { id: '1', user: 'John Doe', amount: 5000, method: 'easypaisa', status: 'pending', created_at: '2024-01-20 11:30 AM' },
-        { id: '2', user: 'Jane Smith', amount: 3000, method: 'jazzcash', status: 'approved', created_at: '2024-01-20 10:15 AM' },
+        { id: '1', user: 'John Doe', amount: 5000, method: 'easypaisa', status: 'pending', created_at: '2024-01-20' },
+        { id: '2', user: 'Jane Smith', amount: 3000, method: 'jazzcash', status: 'approved', created_at: '2024-01-20' },
       ]);
 
     } catch (err: any) {
@@ -69,6 +79,7 @@ export default function AdminDashboardPage() {
       setError(err.message || 'Error loading dashboard');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -78,24 +89,50 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-7 w-48 bg-slate-200 rounded-xl animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-slate-100 rounded-lg animate-pulse" />
+          </div>
+          <div className="h-9 w-32 bg-slate-200 rounded-xl animate-pulse" />
+        </div>
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {Array.from({length: 6}).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl p-5 animate-pulse border border-slate-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+                <div className="h-5 w-12 bg-slate-100 rounded-lg" />
+              </div>
+              <div className="h-7 w-16 bg-slate-200 rounded-lg mb-2" />
+              <div className="h-3 w-24 bg-slate-100 rounded" />
+            </div>
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {Array.from({length: 2}).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl p-6 animate-pulse border border-slate-100 h-48" />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 text-center">
-        <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-          <XCircle className="w-8 h-8" />
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mb-5 shadow-sm">
+          <BarChart2 className="w-9 h-9 text-red-400" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Error</h2>
-        <p className="text-gray-500 mb-6">{error}</p>
-        <button 
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Dashboard Unavailable</h2>
+        <p className="text-slate-400 mb-6 max-w-sm text-sm">{error}</p>
+        <button
           onClick={() => fetchDashboardData()}
-          className="btn-primary"
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-semibold text-sm shadow-md shadow-indigo-500/20 transition-all active:scale-95"
         >
+          <RefreshCw className="w-4 h-4" />
           Try Again
         </button>
       </div>
@@ -103,91 +140,115 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="space-y-8 lg:space-y-12">
-      {/* Header with Control Actions */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="space-y-6">
+      {/* ── PAGE HEADER ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tight">Platform Intelligence</h1>
-          <p className="text-slate-500 font-medium mt-2">Real-time operational overview across all segments.</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Platform Overview</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Welcome back — here's what's happening today.</p>
         </div>
-        
-        <div className="flex items-center space-x-3 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
-          {['24h', '7d', '30d'].map((range) => (
-            <button
-              key={range}
-              className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                range === '7d' 
-                  ? 'bg-slate-900 text-white shadow-lg' 
-                  : 'text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              {range}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          {/* Time Range Filter */}
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm">
+            {['24h', '7d', '30d'].map((range) => (
+              <button
+                key={range}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                  range === '7d'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-700'
+                )}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => fetchDashboardData(true)}
+            className={cn(
+              'p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl border border-slate-200 bg-white shadow-sm transition-all',
+              isRefreshing && 'animate-spin text-indigo-500'
+            )}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* High Density Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 lg:gap-6">
+      {/* ── STATS GRID ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="premium-card !p-6 group hover:bg-slate-900 hover:text-white transition-all duration-500">
-            <div className="flex items-center justify-between mb-6">
-              <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                <stat.icon className="w-6 h-6 text-white" />
+          <div
+            key={index}
+            className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', stat.bg)}>
+                <stat.icon className={cn('w-5 h-5', stat.iconColor)} />
               </div>
-              <div className={`flex items-center text-[10px] font-black px-2 py-1 rounded-lg ${
-                stat.change >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-              }`}>
-                {stat.change >= 0 ? '↑' : '↓'}{Math.abs(stat.change)}%
-              </div>
+              <span className={cn(
+                'text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider',
+                (typeof stat.change === 'number' ? stat.change : 0) >= 0
+                  ? 'bg-emerald-50 text-emerald-600'
+                  : 'bg-red-50 text-red-600'
+              )}>
+                {(typeof stat.change === 'number' ? stat.change : 0) >= 0 ? '+' : ''}{stat.change}%
+              </span>
             </div>
-            <p className="text-2xl lg:text-3xl font-black tracking-tighter mb-1">{stat.value}</p>
-            <p className="text-[10px] text-slate-400 group-hover:text-slate-500 font-black uppercase tracking-widest">{stat.title}</p>
+            <p className="text-2xl font-black text-slate-900 tracking-tight mb-0.5">{stat.value}</p>
+            <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">{stat.title}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Verification Queue - High Density */}
-        <div className="premium-card overflow-hidden !p-0">
-          <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+      {/* ── MAIN CONTENT GRID ── */}
+      <div className="grid lg:grid-cols-2 gap-6">
+
+        {/* Verification Queue */}
+        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div>
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Verification Queue</h2>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">{pendingApprovals.length} PENDING DECISIONS</p>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">Verification Queue</h2>
+              <p className="text-xs text-slate-400 font-medium mt-0.5">{pendingApprovals.length} pending decisions</p>
             </div>
-            <Link href="/admin/approvals" className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all">
-              <ArrowUpRight className="w-5 h-5" />
+            <Link
+              href="/admin/approvals"
+              className="flex items-center gap-1.5 text-xs text-indigo-600 font-bold hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-all"
+            >
+              View All
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100">
+
+          <div className="divide-y divide-slate-50">
             {pendingApprovals.length === 0 ? (
-               <div className="p-20 text-center">
-                  <Clock className="w-12 h-12 text-slate-100 mx-auto mb-4" />
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Everything Processed</p>
-               </div>
+              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+                  <CheckCircle className="w-7 h-7 text-slate-200" />
+                </div>
+                <p className="text-sm font-bold text-slate-400">All caught up!</p>
+                <p className="text-xs text-slate-300 mt-1">No pending verifications</p>
+              </div>
             ) : pendingApprovals.map((user) => (
-              <div key={user.id} className="p-8 hover:bg-slate-50 transition-all group">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-14 h-14 bg-indigo-50 border border-indigo-100 rounded-[1.25rem] flex items-center justify-center text-indigo-600 font-black text-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+              <div key={user.id} className="px-6 py-4 hover:bg-slate-50 transition-colors group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
                       {user.name?.charAt(0) || 'U'}
                     </div>
                     <div>
-                      <p className="font-black text-slate-900 tracking-tight leading-none mb-1">{user.name}</p>
-                      <p className="text-xs font-medium text-slate-400">{user.email}</p>
+                      <p className="text-sm font-bold text-slate-900">{user.name}</p>
+                      <p className="text-xs text-slate-400">{user.email}</p>
                     </div>
                   </div>
-                  <div className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">
-                    {user.plan?.display_name || 'FREE'}
+                  <div className="flex items-center gap-2">
+                    <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
+                      {user.plan?.display_name || 'FREE'}
+                    </span>
+                    <UserActions userId={user.id} userStatus={user.status} />
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                   <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status: {user.payment_status}</span>
-                   </div>
-                   <UserActions userId={user.id} userStatus={user.status} />
                 </div>
               </div>
             ))}
@@ -195,58 +256,65 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Withdrawal Ledger */}
-        <div className="premium-card overflow-hidden !p-0">
-          <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div>
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Withdrawal Ledger</h2>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">LATEST TREASURY OUTFLOWS</p>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">Withdrawal Ledger</h2>
+              <p className="text-xs text-slate-400 font-medium mt-0.5">Latest payment requests</p>
             </div>
-            <Link href="/admin/withdrawals" className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all">
-              <ArrowUpRight className="w-5 h-5" />
+            <Link
+              href="/admin/withdrawals"
+              className="flex items-center gap-1.5 text-xs text-indigo-600 font-bold hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-all"
+            >
+              View All
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100">
-            {recentWithdrawals.map((withdrawal) => (
-              <div key={withdrawal.id} className="p-8 hover:bg-slate-50 transition-all">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-6">
-                     <div className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm">
-                        <Wallet className="w-6 h-6 text-slate-400" />
-                     </div>
-                     <div>
-                        <p className="font-black text-slate-900 tracking-tight text-lg mb-1">{withdrawal.user}</p>
-                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">VIA {withdrawal.method}</p>
-                     </div>
+
+          <div className="divide-y divide-slate-50">
+            {recentWithdrawals.map((w) => (
+              <div key={w.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{w.user}</p>
+                      <p className="text-xs text-indigo-600 font-semibold uppercase tracking-wider">via {w.method}</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-black tracking-tighter text-slate-900">₨ {withdrawal.amount.toLocaleString()}</p>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{withdrawal.created_at}</p>
+                    <p className="text-lg font-black text-slate-900">₨ {w.amount.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{w.created_at}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
-                   <span className={cn(
-                      'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border',
-                      withdrawal.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-green-50 text-green-700 border-green-100'
-                   )}>
-                      {withdrawal.status}
-                   </span>
-                    {withdrawal.status === 'pending' && (
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => router.push('/admin/withdrawals')}
-                          className="px-6 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 hover:scale-105 active:scale-95 transition-all"
-                        >
-                          PAY NOW
-                        </button>
-                        <button 
-                          onClick={() => router.push('/admin/withdrawals')}
-                          className="px-6 py-3 bg-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-600 transition-all"
-                        >
-                          REJECT
-                        </button>
-                      </div>
-                    )}
+                  <span className={cn(
+                    'text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider border',
+                    w.status === 'pending'
+                      ? 'bg-amber-50 text-amber-600 border-amber-100'
+                      : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                  )}>
+                    {w.status}
+                  </span>
+                  {w.status === 'pending' && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => router.push('/admin/withdrawals')}
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider rounded-lg shadow-sm shadow-indigo-500/20 transition-all active:scale-95"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => router.push('/admin/withdrawals')}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -254,25 +322,50 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Auxiliary Metrics Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         {[
-           { label: 'User Growth', value: '+234', icon: UserPlus, trend: '+15.2%' },
-           { label: 'Task Throughput', value: '12.4k', icon: Target, trend: '+8.4%' },
-           { label: 'Network Points', value: '1.2M', icon: Gift, trend: '+12.1%' },
-           { label: 'Conversion Velocity', value: '68%', icon: Activity, trend: '+3.2%' },
-         ].map((aux, i) => (
-           <div key={i} className="premium-card !p-8 border-2 border-dashed border-slate-100 !bg-transparent hover:border-indigo-200 hover:bg-indigo-50/10 transition-all">
-              <div className="flex items-center justify-between mb-6">
-                 <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
-                    <aux.icon className="w-6 h-6 text-slate-400" />
-                 </div>
-                 <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">{aux.trend}</span>
+      {/* ── AUX METRICS ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {AUX_METRICS.map((m, i) => (
+          <div
+            key={i}
+            className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center">
+                <m.icon className="w-5 h-5 text-slate-500" />
               </div>
-              <p className="text-3xl font-black text-slate-900 tracking-tighter mb-1">{aux.value}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{aux.label}</p>
-           </div>
-         ))}
+              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-wider">
+                {m.trend}
+              </span>
+            </div>
+            <p className="text-2xl font-black text-slate-900 tracking-tight mb-0.5">{m.value}</p>
+            <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">{m.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── QUICK LINKS ── */}
+      <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-6 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-black tracking-tight mb-1">Quick Actions</h3>
+            <p className="text-indigo-200 text-sm">Manage your platform from one place</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: 'Manage Users', href: '/admin/users' },
+              { label: 'View Reports', href: '/admin/reports' },
+              { label: 'Add Task', href: '/admin/tasks' },
+            ].map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="bg-white/15 hover:bg-white/25 border border-white/20 text-white font-bold text-sm px-4 py-2 rounded-xl transition-all backdrop-blur-sm"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

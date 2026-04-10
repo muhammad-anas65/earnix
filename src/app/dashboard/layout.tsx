@@ -11,12 +11,12 @@ import {
   Bell, 
   Settings,
   LogOut,
-  TrendingUp,
   Target,
   Menu,
   X,
   User,
-  Zap
+  Zap,
+  ChevronRight
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Toaster } from 'react-hot-toast';
@@ -38,7 +38,7 @@ export default function UserDashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<{name?: string; plan?: string} | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,6 +62,7 @@ export default function UserDashboardLayout({
         }
       } catch (err) {
         console.error(err);
+        router.push('/login');
       } finally {
         setLoading(false);
       }
@@ -77,118 +78,232 @@ export default function UserDashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Zap className="w-7 h-7 text-indigo-600" />
+          </div>
+          <div className="w-7 h-7 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col lg:flex-row overflow-x-hidden">
-      {/* Sidebar - Desktop */}
-      <aside className="bg-white border-r border-slate-100 w-72 fixed left-0 top-0 h-full z-40 hidden lg:flex flex-col shadow-[10px_0_40px_-15px_rgba(0,0,0,0.03)]">
-        <div className="p-8">
-          <Link href="/dashboard" className="flex items-center space-x-3 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
-              <Zap className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-[#F0F4F8] flex overflow-x-hidden">
+
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside className="bg-white border-r border-slate-200/80 w-60 fixed left-0 top-0 h-full z-40 hidden lg:flex flex-col shadow-sm">
+        {/* Logo */}
+        <div className="h-16 flex items-center px-5 border-b border-slate-100 flex-shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+              <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-2xl font-black text-slate-800 tracking-tight">Earnix</span>
+            <span className="text-lg font-black text-slate-800 tracking-tight">Earnix</span>
           </Link>
         </div>
         
-        <nav className="flex-1 px-4 mt-4 space-y-1.5 overflow-y-auto hide-scrollbar">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" style={{scrollbarWidth:'none'}}>
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center px-5 py-4 rounded-2xl transition-all duration-200 font-bold group',
-                  isActive 
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' 
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group',
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
-                <item.icon className={cn("w-5 h-5 mr-4 transition-colors", isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
-                <span className="text-sm tracking-tight">{item.name}</span>
+                <item.icon className={cn(
+                  'w-5 h-5 flex-shrink-0 transition-colors',
+                  isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'
+                )} />
+                <span className="text-sm font-semibold">{item.name}</span>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto text-indigo-200" />}
               </Link>
             );
           })}
         </nav>
         
-        <div className="p-6 border-t border-slate-50">
-          <button 
+        {/* User Footer */}
+        <div className="px-3 py-4 border-t border-slate-100 flex-shrink-0 space-y-1">
+          {userData && (
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 mb-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                {getInitials(userData.name || 'U')}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-800 truncate">{userData.name}</p>
+                <p className="text-[10px] text-indigo-600 font-semibold">{userData.plan} Plan</p>
+              </div>
+            </div>
+          )}
+          <button
             onClick={handleLogout}
-            className="flex items-center w-full px-5 py-4 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-all font-bold text-sm"
+            className="flex items-center gap-3 w-full px-3 py-2.5 text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
           >
-            <LogOut className="w-5 h-5 mr-4" />
-            Sign Out
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-semibold">Sign Out</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 lg:ml-72 flex flex-col min-h-screen pb-24 lg:pb-0">
-        {/* User Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 px-4 lg:px-10 py-4 lg:py-6">
-          <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
-            <div className="flex items-center space-x-4">
-              <div className="lg:hidden w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20">
-                <Zap className="w-5 h-5 text-white" />
+      {/* ── MAIN CONTENT AREA ── */}
+      <div className="flex-1 lg:ml-60 flex flex-col min-h-screen pb-20 lg:pb-0">
+        {/* Header */}
+        <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 px-4 lg:px-8 h-16 flex items-center flex-shrink-0">
+          <div className="flex items-center justify-between w-full">
+            {/* Left */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="lg:hidden p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <div className="lg:hidden">
+                <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/20">
+                  <Zap className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <div>
-                <p className="hidden lg:block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">Active Account</p>
-                <h1 className="text-lg lg:text-xl font-black text-slate-900 tracking-tight">{userData?.name}</h1>
+              <div className="hidden lg:block">
+                <h1 className="text-sm font-black text-slate-900">
+                  {navigation.find(n => pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(n.href)))?.name || 'Dashboard'}
+                </h1>
+                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+                  {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}
+                </p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-               <div className="hidden sm:flex items-center bg-green-50 rounded-full px-4 py-1.5 border border-green-100">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                  <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">{userData?.plan}</span>
-               </div>
-               
-               <Link href="/dashboard/notifications" className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 transition-colors relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full border-2 border-white"></span>
-               </Link>
-               
-               <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-xl ring-4 ring-white">
-                  {getInitials(userData?.name || 'U')}
-               </div>
+
+            {/* Right */}
+            <div className="flex items-center gap-2">
+              {userData?.plan && (
+                <div className="hidden sm:flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-1.5">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">{userData.plan}</span>
+                </div>
+              )}
+
+              <Link href="/dashboard/notifications" className="relative p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border-2 border-white" />
+              </Link>
+
+              <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-md ring-2 ring-white">
+                {getInitials(userData?.name || 'U')}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Dash Page Wrapper */}
-        <main className="flex-1 p-4 lg:p-10 max-w-7xl mx-auto w-full">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Page Content */}
+        <main className="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
+          <div className="animate-in fade-in slide-in-from-bottom-3 duration-500">
             {children}
           </div>
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 px-6 py-4 flex items-center justify-between z-50 rounded-t-[2.5rem] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+      {/* ── MOBILE SIDEBAR OVERLAY ── */}
+      {mobileSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          onClick={() => setMobileSidebarOpen(false)}
+        >
+          <div
+            className="bg-white w-64 h-full shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/20">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-lg font-black text-slate-800">Earnix</span>
+              </div>
+              <button onClick={() => setMobileSidebarOpen(false)} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" style={{scrollbarWidth:'none'}}>
+              {navigation.map((item) => {
+                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-sm',
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    )}
+                  >
+                    <item.icon className={cn('w-5 h-5 flex-shrink-0', isActive ? 'text-white' : 'text-slate-400')} />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="px-3 py-4 border-t border-slate-100">
+              {userData && (
+                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                    {getInitials(userData.name || 'U')}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-800 truncate">{userData.name}</p>
+                    <p className="text-[10px] text-indigo-600 font-semibold">{userData.plan} Plan</p>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all text-sm font-semibold"
+              >
+                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 z-40 flex items-center justify-around px-2 py-2">
         {navigation.slice(0, 5).map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           return (
-            <Link 
-              key={item.name} 
+            <Link
+              key={item.name}
               href={item.href}
               className={cn(
-                "flex flex-col items-center space-y-1 transition-all",
-                isActive ? "text-primary-600 scale-110" : "text-slate-400"
+                'flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all',
+                isActive ? 'text-indigo-600' : 'text-slate-400'
               )}
             >
-              <item.icon className="w-6 h-6" />
-              <span className="text-[10px] font-black uppercase tracking-tighter">{item.name.split(' ')[0]}</span>
+              <div className={cn(
+                'w-9 h-9 rounded-xl flex items-center justify-center transition-all',
+                isActive ? 'bg-indigo-50' : ''
+              )}>
+                <item.icon className={cn('w-5 h-5', isActive && 'scale-110')} />
+              </div>
+              <span className="text-[10px] font-bold tracking-tight">{item.name.split(' ')[0]}</span>
             </Link>
           );
         })}
       </nav>
-      <Toaster position="top-right" />
+
+      <Toaster position="top-right" toastOptions={{
+        style: { borderRadius: '12px', fontWeight: 600, fontSize: '14px' }
+      }} />
     </div>
   );
 }

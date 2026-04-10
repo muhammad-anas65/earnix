@@ -20,25 +20,25 @@ import {
   TrendingUp,
   Bell,
   Search,
-  ChevronDown,
-  Eye,
   Shield,
-  Zap
+  Zap,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
-import { cn, formatCurrency, formatDateTime, getInitials } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Users', href: '/admin/users', icon: Users },
-  { name: 'Approvals', href: '/admin/approvals', icon: CreditCard },
-  { name: 'Withdrawals', href: '/admin/withdrawals', icon: Wallet },
-  { name: 'Plans', href: '/admin/plans', icon: Zap },
-  { name: 'Tasks', href: '/admin/tasks', icon: Target },
-  { name: 'Referrals', href: '/admin/referrals', icon: Gift },
-  { name: 'Fraud', href: '/admin/fraud', icon: Shield },
-  { name: 'Payments', href: '/admin/payments', icon: FileText },
-  { name: 'Reports', href: '/admin/reports', icon: BarChart3 },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, badge: null },
+  { name: 'Users', href: '/admin/users', icon: Users, badge: null },
+  { name: 'Approvals', href: '/admin/approvals', icon: CreditCard, badge: '3' },
+  { name: 'Withdrawals', href: '/admin/withdrawals', icon: Wallet, badge: null },
+  { name: 'Plans', href: '/admin/plans', icon: Zap, badge: null },
+  { name: 'Tasks', href: '/admin/tasks', icon: Target, badge: null },
+  { name: 'Referrals', href: '/admin/referrals', icon: Gift, badge: null },
+  { name: 'Fraud', href: '/admin/fraud', icon: Shield, badge: null },
+  { name: 'Payments', href: '/admin/payments', icon: FileText, badge: null },
+  { name: 'Reports', href: '/admin/reports', icon: BarChart3, badge: null },
+  { name: 'Settings', href: '/admin/settings', icon: Settings, badge: null },
 ];
 
 export default function AdminLayout({
@@ -48,14 +48,14 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminData, setAdminData] = useState<{name?: string; email?: string} | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAdmin = async () => {
-      // Don't fetch if we're on login or register pages
       if (pathname === '/admin/login' || pathname === '/admin/register') {
         setLoading(false);
         return;
@@ -76,6 +76,7 @@ export default function AdminLayout({
       } catch (err) {
         console.error('Admin fetch error:', err);
         setIsAuthenticated(false);
+        router.push('/admin/login');
       } finally {
         setLoading(false);
       }
@@ -95,10 +96,13 @@ export default function AdminLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying admin access...</p>
+          <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <TrendingUp className="w-8 h-8 text-indigo-400" />
+          </div>
+          <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-400 text-sm font-medium">Verifying admin access...</p>
         </div>
       </div>
     );
@@ -106,12 +110,14 @@ export default function AdminLayout({
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
-          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-500 mb-6 font-medium">You don't have permission to access the admin area.</p>
-          <Link href="/admin/login" className="btn-primary inline-block w-full">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
+          <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <XCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
+          <p className="text-slate-400 mb-6 text-sm">You don't have permission to access the admin area.</p>
+          <Link href="/admin/login" className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-2xl w-full inline-block transition-all">
             Back to Login
           </Link>
         </div>
@@ -119,140 +125,218 @@ export default function AdminLayout({
     );
   }
 
+  const sidebarW = sidebarExpanded ? 'w-64' : 'w-[72px]';
+
   return (
-    <div className="min-h-screen bg-[#F1F5F9] flex overflow-x-hidden">
-      {/* Sidebar - Desktop */}
+    <div className="min-h-screen bg-[#F0F4F8] flex overflow-x-hidden">
+
+      {/* ── DESKTOP SIDEBAR ── */}
       <aside className={cn(
-        'bg-[#0F172A] text-white fixed left-0 top-0 h-full z-40 transition-all duration-300 hidden lg:flex flex-col shadow-2xl',
-        sidebarOpen ? 'w-80' : 'w-24'
+        'bg-[#0D1117] text-white fixed left-0 top-0 h-full z-40 transition-all duration-300 hidden lg:flex flex-col border-r border-white/[0.04]',
+        sidebarW
       )}>
-        <div className="p-8 border-b border-slate-800/50 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center space-x-3 overflow-hidden">
-            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 flex-shrink-0">
-              <TrendingUp className="w-7 h-7 text-white" />
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.06] flex-shrink-0">
+          <Link href="/admin" className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 flex-shrink-0">
+              <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            {sidebarOpen && (
-              <div className="whitespace-nowrap transition-all duration-300">
-                <span className="text-xl font-black tracking-tight block">Earnix</span>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Management</p>
+            {sidebarExpanded && (
+              <div className="min-w-0 overflow-hidden">
+                <span className="text-base font-black text-white block leading-tight">Earnix</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Admin Panel</span>
               </div>
             )}
           </Link>
+          <button
+            onClick={() => setSidebarExpanded(!sidebarExpanded)}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all flex-shrink-0"
+          >
+            {sidebarExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
         </div>
-        
-        <nav className="flex-1 p-4 mt-6 space-y-1.5 overflow-y-auto hide-scrollbar">
+
+        {/* Nav Items */}
+        <nav className="flex-1 py-4 px-2.5 space-y-0.5 overflow-y-auto overflow-x-hidden" style={{scrollbarWidth:'none'}}>
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
                 href={item.href}
+                title={!sidebarExpanded ? item.name : undefined}
                 className={cn(
-                  'flex items-center px-5 py-4 rounded-2xl transition-all duration-200 group relative',
-                  isActive 
-                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
-                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                  'flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all duration-150 group relative',
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'
                 )}
               >
-                <item.icon className={cn("w-6 h-6 shrink-0 transition-colors", isActive ? "text-white" : "text-slate-500 group-hover:text-slate-300")} />
-                {sidebarOpen && <span className="ml-4 font-bold text-sm tracking-tight">{item.name}</span>}
-                {!sidebarOpen && isActive && <div className="absolute right-0 w-1.5 h-6 bg-indigo-500 rounded-l-full"></div>}
+                <item.icon className={cn(
+                  'w-5 h-5 flex-shrink-0 transition-colors',
+                  isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'
+                )} />
+                {sidebarExpanded && (
+                  <span className="text-sm font-semibold truncate">{item.name}</span>
+                )}
+                {sidebarExpanded && item.badge && (
+                  <span className="ml-auto bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center flex-shrink-0">
+                    {item.badge}
+                  </span>
+                )}
+                {!sidebarExpanded && item.badge && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                )}
               </Link>
             );
           })}
         </nav>
-        
-        <div className="p-6 border-t border-slate-800/50">
-          <button 
+
+        {/* Footer */}
+        <div className="px-2.5 py-4 border-t border-white/[0.06] flex-shrink-0 space-y-1">
+          {/* Admin Info */}
+          {sidebarExpanded && (
+            <div className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl mb-1">
+              <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                {getInitials(adminData?.name || 'AD')}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">{adminData?.name || 'Administrator'}</p>
+                <p className="text-[10px] text-slate-500 truncate">{adminData?.email || ''}</p>
+              </div>
+            </div>
+          )}
+          <button
             onClick={handleLogout}
-            className="flex items-center w-full px-5 py-4 text-slate-500 hover:bg-red-500/10 hover:text-red-400 rounded-2xl transition-all font-bold text-sm"
+            title={!sidebarExpanded ? 'Logout' : undefined}
+            className="flex items-center gap-3 w-full px-2.5 py-2.5 text-slate-500 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all"
           >
-            <LogOut className="w-6 h-6 shrink-0" />
-            {sidebarOpen && <span className="ml-4">Logout</span>}
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            {sidebarExpanded && <span className="text-sm font-semibold">Logout</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main Area */}
-      <main className={cn('flex-1 flex flex-col min-h-screen transition-all duration-300', sidebarOpen ? 'lg:ml-80' : 'lg:ml-24')}>
+      {/* ── MAIN AREA ── */}
+      <main className={cn(
+        'flex-1 flex flex-col min-h-screen transition-all duration-300',
+        sidebarExpanded ? 'lg:ml-64' : 'lg:ml-[72px]'
+      )}>
         {/* Top Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-6 lg:px-12 py-5">
-          <div className="flex items-center justify-between mx-auto w-full">
-            <div className="flex items-center space-x-6">
-               <button 
-                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                 className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl transition-all shadow-sm"
-               >
-                 <Menu className="w-5 h-5" />
-               </button>
-               
-               <div className="hidden md:flex items-center relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                  <input 
-                    type="text" 
-                    placeholder="Search anything..." 
-                    className="pl-12 pr-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white w-80 transition-all font-medium"
-                  />
-               </div>
+        <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 px-4 lg:px-8 h-16 flex items-center flex-shrink-0">
+          <div className="flex items-center justify-between w-full gap-4">
+            {/* Left: Mobile menu + Search */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="lg:hidden p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
+              <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-72 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-300 transition-all">
+                <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search users, payments..."
+                  className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none w-full"
+                />
+              </div>
             </div>
-            
-            <div className="flex items-center space-x-4">
-               <div className="hidden sm:flex flex-col text-right mr-4 border-r border-slate-100 pr-6">
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Administrator</span>
-                  <span className="text-sm font-black text-slate-900">{adminData?.name}</span>
-               </div>
-               
-               <button className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-3 right-3 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
-               </button>
-               
-               <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black shadow-xl ring-4 ring-slate-100">
+
+            {/* Right: Admin info */}
+            <div className="flex items-center gap-3">
+              <button className="relative p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+              </button>
+
+              <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-slate-200">
+                <div className="text-right">
+                  <p className="text-xs font-bold text-slate-800 leading-tight">{adminData?.name || 'Administrator'}</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Admin</p>
+                </div>
+                <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-md">
                   {getInitials(adminData?.name || 'AD')}
-               </div>
+                </div>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Dynamic Content */}
-        <div className="p-6 lg:p-12 max-w-[1600px] w-full mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
-           {children}
+        {/* Page Content */}
+        <div className="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {children}
+          </div>
         </div>
       </main>
-      
-      {/* Mobile Drawer (Same component logic as before but better UI) */}
-      {!sidebarOpen && (
-        <button 
-          onClick={() => setSidebarOpen(true)}
-          className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl z-50 flex items-center justify-center active:scale-95 transition-all"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-      )}
 
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50" onClick={() => setSidebarOpen(false)}>
-          <div className="bg-[#0F172A] w-72 h-full shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="p-8 border-b border-slate-800/50 flex items-center justify-between">
-              <span className="text-2xl font-black text-white">Earnix</span>
-              <button onClick={() => setSidebarOpen(false)} className="p-2 text-slate-400 hover:text-white"><X className="w-6 h-6" /></button>
+      {/* ── MOBILE SIDEBAR OVERLAY ── */}
+      {mobileSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+          onClick={() => setMobileSidebarOpen(false)}
+        >
+          <div
+            className="bg-[#0D1117] w-72 h-full shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-16 flex items-center justify-between px-5 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-base font-black text-white block leading-tight">Earnix</span>
+                  <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Admin Panel</span>
+                </div>
+              </div>
+              <button onClick={() => setMobileSidebarOpen(false)} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-               {navigation.map((item) => (
-                 <Link
-                   key={item.name}
-                   href={item.href}
-                   onClick={() => setSidebarOpen(false)}
-                   className={cn(
-                     'flex items-center px-5 py-4 rounded-xl transition-all font-bold',
-                     pathname === item.href ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400'
-                   )}
-                 >
-                   <item.icon className="w-6 h-6 mr-4" />
-                   <span className="text-sm">{item.name}</span>
-                 </Link>
-               ))}
+            <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto" style={{scrollbarWidth:'none'}}>
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-sm',
+                    pathname === item.href
+                      ? 'bg-indigo-600 text-white shadow-lg'
+                      : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'
+                  )}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.name}</span>
+                  {item.badge && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
             </nav>
+            <div className="px-3 py-4 border-t border-white/[0.06]">
+              <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/[0.04] mb-2">
+                <div className="w-9 h-9 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg flex items-center justify-center text-white text-sm font-black flex-shrink-0">
+                  {getInitials(adminData?.name || 'AD')}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{adminData?.name || 'Administrator'}</p>
+                  <p className="text-xs text-slate-500 truncate">{adminData?.email || 'admin@earnix.com'}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-slate-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all text-sm font-semibold"
+              >
+                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -12,6 +12,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Return mock/default data gracefully if DB is not configured
+    if (!supabaseAdmin) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          user: {
+            id: userId,
+            name: 'User',
+            email: '',
+            status: 'active',
+            referral_code: 'EARNIX',
+            plan: { display_name: 'Free', daily_task_limit: 2 }
+          },
+          wallet: {
+            available_points: 0,
+            pending_points: 0,
+            total_earned: 0
+          },
+          dailyStats: {
+            tasks_completed: 0,
+            points_earned: 0,
+            daily_limit: 2,
+          }
+        }
+      });
+    }
+
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('*, plan:plans(*)')
@@ -40,7 +67,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         user,
-        wallet,
+        wallet: wallet || { available_points: 0, pending_points: 0, total_earned: 0 },
         dailyStats: {
           tasks_completed: dailyLog?.tasks_completed || 0,
           points_earned: dailyLog?.points_earned || 0,

@@ -17,6 +17,13 @@ export async function POST(
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const { data: user } = await supabaseAdmin
       .from('users')
       .select('*, plan:plans(*)')
