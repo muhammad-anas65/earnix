@@ -114,6 +114,7 @@ function SignupContent() {
       
       if (result.success) {
         toast.success('Account created successfully!');
+        console.log('Plan price:', selectedPlan.price, 'Redirecting to:', selectedPlan.price > 0 ? '/payment' : '/dashboard');
         if (selectedPlan.price > 0) {
           router.push('/payment');
         } else {
