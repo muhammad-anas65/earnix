@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 
 const TASK_TYPES = [
   'daily_checkin',
