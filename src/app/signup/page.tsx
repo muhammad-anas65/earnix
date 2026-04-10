@@ -8,18 +8,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { 
   ArrowLeft, 
-  Eye, 
-  EyeOff, 
+  Upload, 
   CheckCircle, 
-  XCircle,
-  Phone,
-  Mail,
-  User,
-  Lock,
-  Gift,
   CreditCard,
-  Check,
-  Zap
+  Smartphone,
+  FileText,
+  Shield,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { cn, DEFAULT_PLANS } from '@/lib/utils';
 import { useAppStore } from '@/lib/store';
@@ -332,11 +328,69 @@ function SignupContent() {
                          </button>
                        </div>
                      </div>
-                  </div>
+</div>
 
-                  {/* Referral Code */}
-                  <div className="space-y-3 lg:space-y-4">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Referral Code (Optional)</label>
+                  {/* Password Strength Indicator */}
+                  {password && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className={cn(
+                              'h-full transition-all duration-500 rounded-full',
+                              passwordRequirements.filter(r => r.test(password)).length >= 5 ? 'bg-green-500' :
+                              passwordRequirements.filter(r => r.test(password)).length >= 3 ? 'bg-yellow-500' : 'bg-red-500',
+                              passwordRequirements.filter(r => r.test(password)).length >= 5 ? 'w-full' :
+                              passwordRequirements.filter(r => r.test(password)).length >= 3 ? 'w-3/5' : 'w-1/5'
+                            )} 
+                          />
+                        </div>
+                        <span className={cn(
+                          'text-[10px] font-black uppercase tracking-widest',
+                          passwordRequirements.filter(r => r.test(password)).length >= 5 ? 'text-green-600' :
+                          passwordRequirements.filter(r => r.test(password)).length >= 3 ? 'text-yellow-600' : 'text-red-500'
+                        )}>
+                          {passwordRequirements.filter(r => r.test(password)).length >= 5 ? 'Strong' :
+                           passwordRequirements.filter(r => r.test(password)).length >= 3 ? 'Medium' : 'Weak'}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        {passwordRequirements.map((req, index) => {
+                          const isMet = req.test(password);
+                          return (
+                            <div 
+                              key={index} 
+                              className={cn(
+                                'flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300',
+                                isMet ? 'bg-green-50 text-green-700' : 'bg-slate-50 text-slate-400'
+                              )}
+                            >
+                              {isMet ? (
+                                <ShieldCheck className="w-4 h-4 text-green-500" />
+                              ) : (
+                                <Shield className="w-4 h-4" />
+                              )}
+                              <span className="text-[10px] font-bold">{req.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {passwordRequirements.filter(r => r.test(password)).length < 3 && (
+                        <div className="flex items-start gap-3 p-4 bg-red-50 rounded-xl">
+                          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                          <p className="text-red-700 text-xs font-bold">
+                            Your password is weak. Please meet at least 3 requirements to create a strong password that keeps your account secure.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                   {/* Referral Code */}
+                   <div className="space-y-3 lg:space-y-4">
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Referral Code (Optional)</label>
                     <div className="relative">
                       <Gift className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input

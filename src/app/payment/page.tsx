@@ -178,8 +178,8 @@ export default function PaymentPage() {
                     <span className="font-bold text-xl text-gray-900">{method.name}</span>
                   </div>
                   <div className="text-sm text-gray-600 space-y-2">
-                    <p><span className="text-gray-500">Account Title:</span> Earnix Payments</p>
-                    <p><span className="text-gray-500">Account Number:</span> 03XX-XXXXXXX</p>
+                    <p><span className="text-gray-500">Account Title:</span> Hafiz Muhammad Anas</p>
+                    <p><span className="text-gray-500">Account Number:</span> +923096459567</p>
                   </div>
                 </div>
               ))}
